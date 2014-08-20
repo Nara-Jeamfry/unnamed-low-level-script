@@ -48,6 +48,37 @@ C3A_value *tempLocation()
 	C3A_value *aux = malloc(sizeof(C3A_value));
 	aux->type = 0;
 	aux->value.tempID = dataOffset++;
+	
+	C3A_value_container *existing_var = checkNewVar(aux, firstLocal);
+	
+	if(!existing_var)
+	{
+		fprintf(getDebugFile(), "Nova variable\n");
+		C3A_value_container *new = malloc(sizeof(C3A_value_container));
+		new->value = aux;
+		new->id = localOffset++;
+		char *auxName = malloc(sizeof(char)*14);
+		sprintf(auxName, "$t%d", aux->value.tempID);
+		new->name = auxName;
+		
+		if(firstLocal == NULL)
+		{
+			firstLocal = new;
+			lastLocal = new;
+		}
+		else
+		{
+			lastLocal->next = new;
+			lastLocal = new;
+		}
+		
+		aux->container = new;
+	}
+	else
+	{
+		aux->container = existing_var;
+	}
+	 
 	return aux;
 }
 
@@ -57,16 +88,15 @@ C3A_value *varLocation(char * identifier)
 	aux->value.varName = identifier;
 	aux->type = 1;
 	
-	fprintf(stdout, "A ver si funciona\n");
-	fprintf(getDebugFile(), "A ver si funciona\n");
-	
 	C3A_value_container *existing_var = checkNewVar(aux, firstLocal);
 	
 	if(!existing_var)
 	{
+		fprintf(getDebugFile(), "Nova variable\n");
 		C3A_value_container *new = malloc(sizeof(C3A_value_container));
 		new->value = aux;
 		new->id = localOffset++;
+		new->name = identifier;
 		
 		if(firstLocal == NULL)
 		{
@@ -331,7 +361,7 @@ void printCode(FILE * fi)
 		
 		while(var)
 		{
-			res = fprintf(fi, "%d: Variable %s as #%d\n", lineNumber++, var->value->value, var->id);
+			res = fprintf(fi, "%d: Variable %s as #%d\n", lineNumber++, var->name, var->id);
 		
 			var = var->next;
 		}
@@ -490,10 +520,23 @@ C3A_value_container *checkNewVar(C3A_value *var, C3A_value_container *locals) /*
 	fprintf(getDebugFile(), "Checking new variable\n");
 	while(aux_locals && !found)
 	{
-		fprintf(getDebugFile(), "Comparing names: %s and %s\n", var->value.varName, aux_locals->value->value.varName);
-		if(!strcmp(var->value.varName, aux_locals->value->value.varName))
+		if(var->type == 1)
 		{
-			found = aux_locals;
+			fprintf(getDebugFile(), "Comparing names: %s and %s\n", var->value.varName, aux_locals->name);
+			if(!strcmp(var->value.varName, aux_locals->name))
+			{
+				found = aux_locals;
+			}
+		}
+		else if(var->type == 0)
+		{
+			char* aux = malloc(sizeof(char)*12);
+			sprintf(aux, "$t%d", var->value.tempID);
+			fprintf(getDebugFile(), "Comparing temps: %s and %s\n", aux, aux_locals->name);
+			if(!strcmp(aux, aux_locals->name))
+			{
+				found = aux_locals;
+			}
 		}
 		aux_locals = aux_locals->next;
 	}

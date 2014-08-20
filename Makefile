@@ -8,16 +8,16 @@ IN_YACC = prac3.y
 
 OBJ = prac3.o prac3l.o prac3y.o
 SRC = prac3.c
-SRCL = prac3l.c
-SRCY = prac3y.c
+SRCL = prac3l.tmp.c
+SRCY = prac3y.tmp.c
 SRCH = prac3.h
 SRCSYM = symtab.c
 YHEADER = prac3y.h
 
 BIN = prac3.exe
 
-LFLAGS = -n -o $*.c
-YFLAGS = -d -v -o $*.c --defines=$(YHEADER)
+LFLAGS = -n -o $(SRCL)
+YFLAGS = -d -o $(SRCY) --defines=$(YHEADER)
 CFLAGS = -ansi -g
 OTHERS = prac3y.h prac3y.output
 

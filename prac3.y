@@ -74,9 +74,9 @@ function
 params : OPEN_PARENTH CLOSE_PARENTH {
 	
 	}
-	/*| OPEN_PARENTH CLOSE_PARENTH {
-	
-	}*/
+	| OPEN_PARENTH ID ID CLOSE_PARENTH {
+		
+	}
 
 separator
 	: SEPARATOR {

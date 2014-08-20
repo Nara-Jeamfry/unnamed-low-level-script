@@ -23,7 +23,7 @@
 #define INCOMPAT 3
 
 typedef struct C3A_val {
-	int type; /* 0 if temporal value, 1 if variable on symtab, 2 if intlit, 3 if floatlit, 4 if stringlit */
+	int type; /* 0 temp value, 1 var on symtab, 2 iintlit, 3 floatlit, 4 stringlit, 5 type */
 	
 	union C3A_values {
 		int tempID;
@@ -31,6 +31,7 @@ typedef struct C3A_val {
 		int literalI;
 		float literalF;
 		char *literalS;
+		char *type;
 	} value;
 	
 	struct C3A_container *container;
@@ -91,6 +92,7 @@ typedef struct bytecode {
 typedef struct C3A_container {
 	C3A_value *value;
 	
+	char* name;
 	int id;
 	
 	struct C3A_container *next;

@@ -1,0 +1,18 @@
+fibonacci( )
+{
+	n := 50;
+	x := 1;
+	y := 1;
+	suma();
+	for (sum in 3..n) {
+		fib := x + y;
+		x := y;
+		y := fib;
+	}
+}
+
+suma()
+{
+	hola := "a";
+	hola := hola + "b";
+}

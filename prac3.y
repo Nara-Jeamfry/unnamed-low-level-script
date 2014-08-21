@@ -37,7 +37,7 @@ bytecode_entry * aux;
 %type <literal> boolean_expr or_expr and_expr not_expr boolean
 %type <variable> name
 %type <marker> if_expr for_expr while_expr or and while do done separator start_else else
-%type <statement> programa conditional ordre loop function_call
+%type <statement> programa conditional ordre loop function_call params
 %type <error>  assign long_error error_assign
 
 %%
@@ -74,8 +74,13 @@ function
 params : OPEN_PARENTH CLOSE_PARENTH {
 	
 	}
-	| OPEN_PARENTH ID ID CLOSE_PARENTH {
-		
+	| OPEN_PARENTH ID name CLOSE_PARENTH {
+		addType($2.identifier);
+		varLocation($3.identifier);
+		fprintf(getDebugFile(), "Line %d: Loading variable %s from type %s.\n", yylineno, $3.identifier, $2);
+		storeSym($3);
+		/* op = LOAD;
+		aux = gen_code_op(op); */
 	}
 
 separator
@@ -946,8 +951,12 @@ int main()
 	yylineno = 1;
 	yyparse();
 	if(errors_found == 0)
+	{
 		printCode(getCodeFile());
-	fprintf(stdout, "Fi!");
+		printByteCode(getByteCodeFile());
+	}
+	fprintf(stdout, "Fi!\n");
+	closeFiles();
 	return 0;
 }
 

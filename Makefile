@@ -14,7 +14,11 @@ SRCH = prac3.h
 SRCSYM = symtab.c
 YHEADER = prac3y.h
 
+INTC = fgs.c
+INTH = fgs.h
+
 BIN = prac3.exe
+INTBIN = fgs.exe
 
 LFLAGS = -n -o $(SRCL)
 YFLAGS = -d -o $(SRCY) --defines=$(YHEADER)
@@ -33,9 +37,13 @@ all : compile
 
 testf : compile
 	./$(BIN) <$(FIBON)
+	
+testfgs : compile testf
+	./$(INTBIN)
 
 compile : $(SRCL) $(SRCY)
 	$(CC) -o $(BIN) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(LIB)
+	$(CC) -o $(INTBIN) $(CFLAGS) $(INTC) $(INTH)
 	
 $(SRCL) : $(IN_LEX)
 	$(LEX) $(LFLAGS) $<

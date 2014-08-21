@@ -35,8 +35,14 @@ function_entry *lastFunction = NULL;
 C3A_value_container *firstLocal = NULL;
 C3A_value_container *lastLocal = NULL;
 
+C3A_value_container *firstType = NULL;
+C3A_value_container *lastType = NULL;
+
 int codeOffset = 0;
 int localOffset = 1;
+int typeOffset = 0;
+char functionCount = 0;
+int byteNumber;
 
 int nextQuad()
 {
@@ -141,6 +147,41 @@ C3A_value *litLocationString(char *word)
 	aux->value.literalS = word;
 	aux->type = 4;
 	return aux;
+}
+
+void addType(char * typeName)
+{
+	C3A_value *type = malloc(sizeof(C3A_value));
+	type->value.type = typeName;
+	type->type = 5;
+	
+	C3A_value_container *existing_type = checkNewVar(type, firstType);
+	
+	if(!existing_type)
+	{
+		fprintf(getDebugFile(), "Nova variable\n");
+		C3A_value_container *new = malloc(sizeof(C3A_value_container));
+		new->value = type;
+		typeOffset++;
+		new->name = typeName;
+		
+		if(firstType == NULL)
+		{
+			firstType = new;
+			lastType = new;
+		}
+		else
+		{
+			lastType->next = new;
+			lastType = new;
+		}
+		
+		type->container = new;
+	}
+	else
+	{
+		type->container = existing_type;
+	}
 }
 
 bytecode_entry *gen_code()
@@ -275,13 +316,19 @@ void saveFunction(char * identifier)
 	new->length = codeOffset;
 	new->locals = firstLocal;
 	new->localLength = localOffset-1;
+	new->typeLength = typeOffset;
+	new->types = firstType;
 	
 	codeStart = NULL;
 	codeEnd = NULL;
 	firstLocal = NULL;
 	lastLocal = NULL;
+	firstType = NULL;
+	lastType = NULL;
 	codeOffset = 0;
 	localOffset = 1;
+	typeOffset = 0;
+	functionCount++;
 
 	if(firstFunction == NULL)
 	{
@@ -304,6 +351,15 @@ FILE *getCodeFile()
 	return codeFile;
 }
 
+FILE *getByteCodeFile()
+{
+	if(byteCodeFile == 0)
+	{
+		openByteCodeFile();
+	}
+	return byteCodeFile;
+}
+
 FILE *getDebugFile()
 {
 	if(debugFile == 0)
@@ -318,9 +374,147 @@ void openDebugFile()
 	debugFile = fopen("log.txt", "w");
 }
 
+void openByteCodeFile()
+{
+	byteCodeFile = fopen("output.byt", "w");
+}
+
 void openCodeFile()
 {
 	codeFile = fopen("code.c3a", "w");
+}
+
+void closeFiles()
+{
+	fclose(codeFile);
+	fclose(debugFile);
+	fclose(byteCodeFile);
+}
+
+void writeByte(FILE * fi, char text)
+{
+	fprintf(getDebugFile(), "Wrote byte #%d with content %c.\n", ++byteNumber,text);
+	fwrite(&text, 1, 1, fi);
+}
+
+void writeStringBytes(FILE * fi, char * text)
+{
+	char length = strlen(text);
+	char i = 0;
+	writeByte(fi, length);
+	while(i<length)
+	{
+		writeByte(fi, text[i]);
+		i++;
+	}
+}
+
+void printHeaderByteCode(FILE * fi)
+{
+	writeByte(fi, 'g');
+	writeByte(fi, 'a');
+	writeByte(fi, 'm');
+	writeByte(fi, 'e');
+	writeByte(fi, '_');
+	writeByte(fi, 's');
+	writeByte(fi, 'c');
+	writeByte(fi, 'r');
+	writeByte(fi, 'i');
+	writeByte(fi, 'p');
+	writeByte(fi, 't');
+	
+	char major_version = 0, minor_version = 3;
+	writeByte(fi, minor_version);
+	writeByte(fi, major_version);
+}
+
+void printByteCode(FILE * fi)
+{
+	fprintf(getDebugFile(), "\n\n--- Printing ByteCode file... ---\n");
+
+	printHeaderByteCode(fi);
+	
+	bytecode_entry *line = NULL;
+	function_entry *section = firstFunction;
+	C3A_value_container *var = NULL;
+	char typeCount = 0;
+	int headerLength = 13;
+	char functionID = 0;
+	fprintf(getDebugFile(), "Header: %d\n", headerLength);
+	
+	headerLength++;
+	writeByte(fi, functionCount);
+	fprintf(getDebugFile(), "Function Count: %d\n", headerLength);
+	
+	while(section)
+	{
+		headerLength += 1;
+		fprintf(getDebugFile(), "Function name char count: %d\n", headerLength);
+		headerLength += strlen(section->identifier);
+		fprintf(getDebugFile(), "Function name: %d\n", headerLength);
+		
+		
+		var = section->types;
+		headerLength++;
+		fprintf(getDebugFile(), "Type Count: %d\n", headerLength);
+		
+		while(var)
+		{
+			typeCount++;
+			headerLength+= 1 + strlen(var->name);
+			fprintf(getDebugFile(), "Type name: %d\n", headerLength);
+			
+			var = var->next;
+		}
+		
+		headerLength++;
+		fprintf(getDebugFile(), "Function ID: %d\n", headerLength);
+		
+		section = section->next;
+	}
+	
+	section = firstFunction;
+	
+	while(section)
+	{
+		writeStringBytes(fi, section->identifier);
+		
+		writeByte(fi, (char)section->typeLength);
+		var = section->types;
+		while(var)
+		{
+			writeStringBytes(fi, var->name);
+			
+			var = var->next;
+		} 
+		
+		writeByte(fi, ++functionID);
+		
+		section = section->next;
+	}
+	
+	fprintf(stdout, "Total header space: %d\n", headerLength);
+	
+	functionID = 0;
+	
+	section = firstFunction;
+	
+	while(section)
+	{
+		line = section->first_code;
+		
+		writeByte(fi, ++functionID);
+		
+		while(line)
+		{
+			printByteCodeOp(fi, line, headerLength);
+			
+			line = line->next;
+			/* lineNumber++; */
+		}
+		
+		section = section->next;
+	}
 }
 
 void printCode(FILE * fi)
@@ -341,12 +535,10 @@ void printCode(FILE * fi)
 		return;
 	}
 	
-	fprintf(stdout, "Printant programa.");
-	
 	while(section)
 	{
 		headerLength += 1;
-		headerLength += section->localLength;
+		headerLength += section->localLength + section->typeLength;
 		section = section->next;
 	}
 	
@@ -357,6 +549,15 @@ void printCode(FILE * fi)
 	{
 		res = fprintf(fi, "%d: Function %s at @%d\n", lineNumber++, section->identifier, headerLength+codeLength);
 		codeLength+=section->length;
+		
+		var = section->types;
+		while(var)
+		{
+			res = fprintf(fi, "%d: Argument of type %s\n", lineNumber++, var->name);
+			
+			var = var->next;
+		}
+		
 		var = section->locals;
 		
 		while(var)
@@ -392,6 +593,11 @@ void printCode(FILE * fi)
 		
 		section = section->next;
 	}
+}
+
+void printByteCodeOp(FILE * fi, bytecode_entry *line, char ID)
+{
+	writeByte(fi, 255);
 }
 
 char *printOp(bytecode_entry *op, int *lineNumber)

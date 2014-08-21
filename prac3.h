@@ -106,7 +106,9 @@ typedef struct function {
 	bytecode_entry *last_code;
 	
 	C3A_value_container *locals;
+	C3A_value_container *types;
 	int localLength;
+	int typeLength;
 	
 	struct function *next;
 } function_entry;
@@ -174,6 +176,7 @@ C3A_value *varLocation(char *);
 C3A_value *litLocationString(char *);
 C3A_value *litLocationInt(int);
 C3A_value *litLocationFloat(float);
+void addType(char *);
 
 bytecode_entry *gen_code();
 bytecode_entry *gen_code_op(INST_SET);
@@ -183,14 +186,24 @@ BP_list* addToList(BP_list*, bytecode_entry*);
 
 FILE *codeFile;
 FILE *debugFile;
+FILE *byteCodeFile;
 
 FILE *getCodeFile();
+FILE *getByteCodeFile();
 FILE *getDebugFile();
 
 void openCodeFile();
+void openByteCodeFile();
 void openDebugFile();
 
+void closeFiles();
+
+void writeByte(FILE *, char);
+void writeStringBytes(FILE *, char *);
+
+void printByteCode(FILE *);
 void printCode(FILE *);
+void printByteCodeOp(FILE *, bytecode_entry *, char);
 char *printOp(bytecode_entry *, int *);
 char *printC3AVal(C3A_value *);
 char *printRelOp(REL_INST_SET);

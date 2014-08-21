@@ -16,18 +16,6 @@ extern int yylineno;
 newline \n
 %%
 
-calc		{
-				return CALC;
-			}
-			
-off			{
-				return OFF;
-			}
-
-on			{
-				return ON;
-			}
-
 :=			{
 				return ASSIGN;
 			}

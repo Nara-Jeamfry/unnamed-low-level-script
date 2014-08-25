@@ -393,20 +393,20 @@ void closeFiles()
 
 void writeByte(FILE * fi, char text)
 {
-	fprintf(getDebugFile(), "Wrote byte #%d with content %X (%c).\n", byteNumber++,text,text);
+	fprintf(getDebugFile(), "Wrote byte #%X with content %X (%c).\n", byteNumber++,text,text);
 	fwrite(&text, 1, 1, fi);
 }
 
 void writeByteInt(FILE * fi, int i)
 {
-	fprintf(getDebugFile(), "Wrote bytes #%d-%d with content %X (int %d).\n", byteNumber, byteNumber+3, i, i);
+	fprintf(getDebugFile(), "Wrote bytes #%X-%X with content %X (int %d).\n", byteNumber, byteNumber+3, i, i);
 	byteNumber+=4;
 	fwrite(&i, 4, 1, fi);
 }
 
 void writeByteFloat(FILE * fi, float f)
 {
-	fprintf(getDebugFile(), "Wrote bytes #%d-%d with content %X (float %f).\n", byteNumber, byteNumber+3, f, f);
+	fprintf(getDebugFile(), "Wrote bytes #%X-%X with content %X (float %f).\n", byteNumber, byteNumber+3, *(unsigned int*)&f, f);
 	byteNumber+=4;
 	fwrite(&f, 4, 1, fi);
 }
@@ -873,7 +873,8 @@ char *printC3AVal(C3A_value *value)
 	{
 		case 0:
 			aux = malloc(sizeof(char)*7);
-			sprintf(aux, "$t%02d", value->value.tempID);
+			sprintf(aux, "#%d", value->container->id);
+			/* sprintf(aux, "$t%02d", value->value.tempID); */
 			return aux;
 		break;
 		case 1:
@@ -891,6 +892,10 @@ char *printC3AVal(C3A_value *value)
 			sprintf(aux, "%.2f", value->value.literalF);
 			return aux;
 		break;
+		case 4:
+			aux = malloc(sizeof(char) * strlen(value->value.literalS)+4);
+			sprintf(aux, "\"%s\"", value->value.literalS);
+			return aux;
 		default:
 			return NULL;
 		break;
@@ -943,9 +948,15 @@ char *printRelOp(REL_INST_SET relop)
 		case I2F:
 			return "I2F";
 		break;
+		case I2S:
+			return "I2S";
+			break;
 		case F2I:
 			return "I2F";
 		break;
+		case F2S:
+			return "F2S";
+			break;
 		case ADDI:
 			return "ADDI";
 		break;
@@ -970,6 +981,9 @@ char *printRelOp(REL_INST_SET relop)
 		case DIVF:
 			return "DIVF";
 		break;
+		case ADDS:
+			return "ADDS";
+			break;
 		case EQ_OP:
 			return "EQ";
 		break;

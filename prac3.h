@@ -24,11 +24,6 @@
 #define LESS 2
 #define INCOMPAT 3
 
-#define GOTO_OFFSET 2
-#define IF_OP_OFFSET 7
-#define CALL_OFFSET 2
-#define HALT_OFFSET 1
-
 #define VAL_TEMP 0
 #define VAL_SYMTAB 1
 #define VAL_INTL 2
@@ -68,7 +63,9 @@ typedef enum {
 	CHSI,
 	CHSF,
 	I2F,
+	I2S,
 	F2I,
+	F2S,
 	ADDI,
 	SUBI,
 	MULI,
@@ -77,6 +74,7 @@ typedef enum {
 	SUBF,
 	MULF,
 	DIVF,
+	ADDS,
 	EQ_OP,
 	NE_OP,
 	LTI,

@@ -4,10 +4,10 @@
 #define BYT_HALT 0x00
 #define BYT_GOTO 0x01
 
-#define BYT_PUSHVAR 0x10
-#define BYT_PUSHINT 0x11
-#define BYT_PUSHFLOAT 0x12
-#define BYT_POPVAR 0x18
+#define BYT_PUSHVAR 0x10 /* 0x10 [var] - */
+#define BYT_PUSHINT 0x11 /* 0x11 [int]/4bytes - */
+#define BYT_PUSHFLOAT 0x12 /* 0x12 [float]/4bytes - */
+#define BYT_POPVAR 0x18 /* 0x18 [var] - Takes a value from the stack and puts it into the variable specified */
 
 #define BYT_ADDI 0x60
 #define BYT_SUBI 0x61

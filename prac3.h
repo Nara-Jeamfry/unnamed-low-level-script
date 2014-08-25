@@ -214,6 +214,7 @@ void closeFiles();
 
 void writeByte(FILE *, char);
 void writeByteInt(FILE *, int);
+void writeByteFloat(FILE *, float);
 void writeStringBytes(FILE *, char *);
 
 void printByteCode(FILE *);

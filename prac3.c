@@ -393,7 +393,7 @@ void closeFiles()
 
 void writeByte(FILE * fi, char text)
 {
-	fprintf(getDebugFile(), "Wrote byte #%d with content %d (%c).\n", byteNumber++,text,text);
+	fprintf(getDebugFile(), "Wrote byte #%d with content %X (%c).\n", byteNumber++,text,text);
 	fwrite(&text, 1, 1, fi);
 }
 
@@ -402,6 +402,13 @@ void writeByteInt(FILE * fi, int i)
 	fprintf(getDebugFile(), "Wrote bytes #%d-%d with content %X (int %d).\n", byteNumber, byteNumber+3, i, i);
 	byteNumber+=4;
 	fwrite(&i, 4, 1, fi);
+}
+
+void writeByteFloat(FILE * fi, float f)
+{
+	fprintf(getDebugFile(), "Wrote bytes #%d-%d with content %X (float %f).\n", byteNumber, byteNumber+3, f, f);
+	byteNumber+=4;
+	fwrite(&f, 4, 1, fi);
 }
 
 void writeStringBytes(FILE * fi, char * text)
@@ -605,7 +612,8 @@ void printPushVar(FILE * fi, C3A_value *var)
 			writeByteInt(fi, var->value.literalI);
 			break;
 		case VAL_FLOATL:
-			writeByte(fi, (char)var->value.literalF);
+			writeByte(fi, BYT_PUSHFLOAT);
+			writeByteFloat(fi, var->value.literalF);
 			break;
 		case VAL_STRINGL:
 			break;

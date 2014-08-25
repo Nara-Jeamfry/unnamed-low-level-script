@@ -69,10 +69,14 @@ functions * read_file(char * fi)
 					fprintf(stdout, "%d: Goto: %d\n", offset-2, fi[offset++]);
 					break;
 				case BYT_PUSHVAR:
-					fprintf(stdout, "%d: Push: %d\n", offset-2, fi[offset++]);
+					fprintf(stdout, "%d: Push var: %d\n", offset-2, fi[offset++]);
 					break;
 				case BYT_PUSHINT:
-					fprintf(stdout, "%d: Push: %d\n", offset-2, fi[offset++]);
+					fprintf(stdout, "%d: Push int: %d\n", offset-2, fi[offset++]);
+					break;
+				case BYT_PUSHFLOAT:
+					fprintf(stdout, "%d: Push float: %f\n", offset-2, fi[offset++]);
+					break;
 				case BYT_EQ:
 				case BYT_NEQ:
 				case BYT_LTI:

@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "ops.h"
+
 typedef struct type_container {
 	char * name;
 	
@@ -8,7 +10,7 @@ typedef struct type_container {
 
 typedef struct function_container {
 
-	int id;
+	char id;
 	
 	char * name;
 
@@ -16,6 +18,8 @@ typedef struct function_container {
 	int var_count;
 	
 	type *types;
+	
+	char start;
 
 } function;
 
@@ -23,6 +27,10 @@ typedef struct function_list {
 	function *value;
 	struct function_list *next;
 } functions;
+
+
+function *findFunction(char , functions *);
+char *readStringBytes(int *, char *);
 
 functions * read_file(char *);
 char * parse_file(FILE *);

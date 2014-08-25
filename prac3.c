@@ -223,13 +223,13 @@ bytecode_entry *gen_code_op(INST_SET op)
 	switch(op)
 	{
 		case GOTO:
-			codeOffset+=2;
+			codeOffset+=GOTO_OFFSET;
 			break;
 		case IF_OP:
-			codeOffset+=3;
+			codeOffset+=IF_OP_OFFSET;
 			break;
 		case CALL:
-			codeOffset+=2;
+			codeOffset+=CALL_OFFSET;
 			break;
 		default:
 			codeOffset++;
@@ -393,8 +393,15 @@ void closeFiles()
 
 void writeByte(FILE * fi, char text)
 {
-	fprintf(getDebugFile(), "Wrote byte #%d with content %c.\n", ++byteNumber,text);
+	fprintf(getDebugFile(), "Wrote byte #%d with content %d (%c).\n", byteNumber++,text,text);
 	fwrite(&text, 1, 1, fi);
+}
+
+void writeByteInt(FILE * fi, int i)
+{
+	fprintf(getDebugFile(), "Wrote bytes #%d-%d with content %X (int %d).\n", byteNumber, byteNumber+3, i, i);
+	byteNumber+=4;
+	fwrite(&i, 4, 1, fi);
 }
 
 void writeStringBytes(FILE * fi, char * text)
@@ -438,7 +445,9 @@ void printByteCode(FILE * fi)
 	function_entry *section = firstFunction;
 	C3A_value_container *var = NULL;
 	char typeCount = 0;
-	int headerLength = 13;
+	headerLength = 13;
+	opsLength = 0;
+	
 	char functionID = 0;
 	fprintf(getDebugFile(), "Header: %d\n", headerLength);
 	
@@ -474,6 +483,7 @@ void printByteCode(FILE * fi)
 	}
 	
 	section = firstFunction;
+	fprintf(getDebugFile(), "Header: %d\n", headerLength);
 	
 	while(section)
 	{
@@ -494,6 +504,7 @@ void printByteCode(FILE * fi)
 	}
 	
 	fprintf(stdout, "Total header space: %d\n", headerLength);
+	fprintf(getDebugFile(), "Total header space: %d\n", headerLength);
 	
 	functionID = 0;
 	
@@ -513,7 +524,167 @@ void printByteCode(FILE * fi)
 			/* lineNumber++; */
 		}
 		
+		opsLength+=section->length+1;
+		
 		section = section->next;
+	}
+}
+
+void printByteCodeOp(FILE * fi, bytecode_entry *line, char length)
+{
+	switch(line->op)
+	{
+		case HALT:
+			writeByte(fi, 0);
+			break;
+		
+		case IF_OP:
+			printPushVar(fi, line->val1);
+			printPushVar(fi, line->val2);
+			printIfByteCode(fi, line);
+			printGoto(fi, line);
+			break;
+			
+		case ASSIGNMENT_OP:
+			printByteCodeOpRel(fi, line);
+			printPopVar(fi, line->val1);
+		case GOTO:
+			printGoto(fi, line);
+			break;
+		default:
+			writeByte(fi, 255);
+	}
+}
+
+void printByteCodeOpRel(FILE * fi, bytecode_entry *op)
+{
+	switch(op->oprel)
+	{
+		case ADDI:
+			printPushVar(fi, op->val2);
+			printPushVar(fi, op->val3);
+			writeByte(fi, BYT_ADDI);
+			break;
+		default:
+			return;
+	}
+}
+
+void printPopVar(FILE * fi, C3A_value *var)
+{
+	switch(var->type)
+	{
+		case VAL_TEMP:
+			writeByte(fi, BYT_POPVAR);
+			writeByte(fi, var->container->id);
+			break;
+		case VAL_SYMTAB:
+			writeByte(fi, BYT_POPVAR);
+			writeByte(fi, var->container->id);
+			break;
+		default:
+			break;
+	}
+	printByteCodeVar(fi, var);
+}
+
+void printPushVar(FILE * fi, C3A_value *var)
+{
+	switch(var->type)
+	{
+		case VAL_TEMP:
+			writeByte(fi, BYT_PUSHVAR);
+			writeByte(fi, var->container->id);
+			break;
+		case VAL_SYMTAB:
+			writeByte(fi, BYT_PUSHVAR);
+			writeByte(fi, var->container->id);
+			break;
+		case VAL_INTL:
+			writeByte(fi, BYT_PUSHINT);
+			writeByteInt(fi, var->value.literalI);
+			break;
+		case VAL_FLOATL:
+			writeByte(fi, (char)var->value.literalF);
+			break;
+		case VAL_STRINGL:
+			break;
+		case VAL_TYPE:
+			break;
+		default:
+			break;
+	}
+}
+
+void printByteCodeVar(FILE * fi, C3A_value *var)
+{
+	switch(var->type)
+	{
+		case VAL_TEMP:
+			writeByte(fi, var->container->id);
+			break;
+		case VAL_SYMTAB:
+			writeByte(fi, var->container->id);
+			break;
+		case VAL_INTL:
+			writeByte(fi, (char)var->value.literalI);
+			break;
+		case VAL_FLOATL:
+			writeByte(fi, (char)var->value.literalF);
+			break;
+		case VAL_STRINGL:
+			break;
+		case VAL_TYPE:
+			break;
+		default:
+			break;
+	}
+}
+
+void printGoto(FILE * fi, bytecode_entry *op)
+{
+	writeByte(fi, 01);
+	writeByte(fi, (char)op->gotoL+headerLength+opsLength);
+}
+
+void printIfByteCode(FILE * fi, bytecode_entry *op)
+{
+	
+
+	switch(op->oprel)
+	{
+		case LTI:
+			writeByte(fi, BYT_LTI);
+			break;
+		case LEI:
+			writeByte(fi, BYT_LEI);
+			break;
+		case GTI:
+			writeByte(fi, BYT_GTI);
+			break;
+		case GEI:
+			writeByte(fi, BYT_GEI);
+			break;
+		case LTF:
+			writeByte(fi, BYT_LTF);
+			break;
+		case LEF:
+			writeByte(fi, BYT_LEF);
+			break;
+		case GTF:
+			writeByte(fi, BYT_GTF);
+			break;
+		case GEF:
+			writeByte(fi, BYT_GEF);
+			break;
+		case EQ_OP:
+			writeByte(fi, BYT_EQ);
+			break;
+		case NE_OP:
+			writeByte(fi, BYT_NEQ);
+			break;
+		default:
+		return;
 	}
 }
 
@@ -525,13 +696,12 @@ void printCode(FILE * fi)
 	
 	int lineNumber = 0, res;
 	
-	headerLength = 0;
+	headerLength = opsLength = 0;
 	int codeLength = 0;
 	
 	if(fprintf(fi, "Bytecode---\n") <= 0)
 	{
 		printError("Cannot write to file\n", "");
-		
 		return;
 	}
 	
@@ -591,13 +761,9 @@ void printCode(FILE * fi)
 			/* lineNumber++; */
 		}
 		
+		opsLength += section->length;
 		section = section->next;
 	}
-}
-
-void printByteCodeOp(FILE * fi, bytecode_entry *line, char ID)
-{
-	writeByte(fi, 255);
 }
 
 char *printOp(bytecode_entry *op, int *lineNumber)
@@ -609,22 +775,28 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 	{
 		case IF_OP:
 			result = malloc(sizeof(char)*(14 + 100)+4);
-			sprintf(result, "%d: %s %s %s\n%d: GOTO\n%d: #%d", (*lineNumber),
-											printRelOp(op->oprel),
-											printC3AVal(op->val1),
-											printC3AVal(op->val2),
+			sprintf(result, "-%d: %s\n-%d: %s\n-%d: %s \n-%d: %s \n-%d: %s\n-%d: GOTO\n-%d: #%d", (*lineNumber),
+											"push",
 											(*lineNumber)+1,
+											printC3AVal(op->val1),
 											(*lineNumber)+2,
-											op->gotoL+headerLength);
-			(*lineNumber)+=3;
+											"push",
+											(*lineNumber)+3,
+											printC3AVal(op->val2),
+											(*lineNumber)+4,
+											printRelOp(op->oprel),
+											(*lineNumber)+5,
+											(*lineNumber)+6,
+											op->gotoL+headerLength+opsLength);
+			(*lineNumber)+=IF_OP_OFFSET;
 			return result;
 		break;
 		case GOTO:
 			result = malloc(sizeof(char)*(5+11)+4);
-			sprintf(result, "%d: GOTO\n%d: #%d", (*lineNumber), 
+			sprintf(result, "-%d: GOTO\n-%d: #%d", (*lineNumber), 
 											(*lineNumber)+1,
-											op->gotoL+headerLength);
-			(*lineNumber)+=2;
+											op->gotoL+headerLength+opsLength);
+			(*lineNumber)+=GOTO_OFFSET;
 			return result;
 		break;
 		case ASSIGNMENT:
@@ -666,13 +838,13 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 			sprintf(result, "%d: CALL\n%d: @%d", (*lineNumber), 
 											(*lineNumber)+1, 
 											op->gotoL);
-			(*lineNumber)+=2;
+			(*lineNumber)+=CALL_OFFSET;
 			return result;
 		break;
 		case HALT:
 			result = malloc(sizeof(char)*14);
-			sprintf(result, "%d: HALT", (*lineNumber));
-			(*lineNumber)++;
+			sprintf(result, "-%d: HALT", (*lineNumber));
+			(*lineNumber)+=HALT_OFFSET;
 			return result;
 		break;
 		default:

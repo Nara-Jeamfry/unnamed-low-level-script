@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "ops.h"
+
 #ifndef commonConstants
 #define commonConstants
 
@@ -22,8 +24,22 @@
 #define LESS 2
 #define INCOMPAT 3
 
+#define GOTO_OFFSET 2
+#define IF_OP_OFFSET 7
+#define CALL_OFFSET 2
+#define HALT_OFFSET 1
+
+#define VAL_TEMP 0
+#define VAL_SYMTAB 1
+#define VAL_INTL 2
+#define VAL_FLOATL 3
+#define VAL_STRINGL 4
+#define VAL_TYPE 5
+
+
+
 typedef struct C3A_val {
-	int type; /* 0 temp value, 1 var on symtab, 2 iintlit, 3 floatlit, 4 stringlit, 5 type */
+	int type; /* 0 temp value, 1 var on symtab, 2 intlit, 3 floatlit, 4 stringlit, 5 type */
 	
 	union C3A_values {
 		int tempID;
@@ -160,12 +176,10 @@ typedef union yytype {
 	void *non_defined;
 } YYSTYPE;
 
-/* 0 if Calculator mode, 1 if Program mode */
-int calc;
 INST_SET op, op2;
 
 int dataOffset;
-int headerLength;
+int headerLength, opsLength;
 
 #endif
 
@@ -199,11 +213,21 @@ void openDebugFile();
 void closeFiles();
 
 void writeByte(FILE *, char);
+void writeByteInt(FILE *, int);
 void writeStringBytes(FILE *, char *);
 
 void printByteCode(FILE *);
-void printCode(FILE *);
+
+void printGoto(FILE *, bytecode_entry *);
 void printByteCodeOp(FILE *, bytecode_entry *, char);
+void printByteCodeVar(FILE *, C3A_value *);
+void printByteCodeOpRel(FILE *, bytecode_entry *);
+void printPushVar(FILE *, C3A_value *);
+void printPopVar(FILE *, C3A_value *);
+void printIfByteCode(FILE *, bytecode_entry *);
+
+void printCode(FILE *);
+
 char *printOp(bytecode_entry *, int *);
 char *printC3AVal(C3A_value *);
 char *printRelOp(REL_INST_SET);

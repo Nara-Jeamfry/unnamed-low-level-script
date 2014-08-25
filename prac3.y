@@ -28,7 +28,6 @@ bytecode_entry * aux;
 %token <non_defined> OPEN_PARENTH CLOSE_PARENTH OPEN_CLAUD CLOSE_CLAUD SEPARATOR
 %token <non_defined> GT GE LT LE EQ NE
 %token <non_defined> AND OR NOT
-%token <non_defined> CALC ON OFF
 
 %token <non_defined> FOR IN FOR_RANGE WHILE DO DONE IF THEN ELSE FI
 %token <error> ERROR
@@ -37,7 +36,7 @@ bytecode_entry * aux;
 %type <literal> boolean_expr or_expr and_expr not_expr boolean
 %type <variable> name
 %type <marker> if_expr for_expr while_expr or and while do done separator start_else else
-%type <statement> programa conditional ordre loop function_call params
+%type <statement> programa conditional ordre loop function_call params block
 %type <error>  assign long_error error_assign
 
 %%
@@ -49,7 +48,7 @@ all
 	}
 
 function 
-	: ID params OPEN_CLAUD programa CLOSE_CLAUD  {
+	: ID params block  {
 		/*if(calc==1)
 			fprintf(stdout, "Execucio finalitzada%s!", (errors_found == 0) ? "" : " amb errors" );
 		else
@@ -57,7 +56,7 @@ function
 			int a = nextQuad();
 			op = HALT;
 			aux = gen_code_op(op);
-			backpatch($4, a);
+			backpatch($3, a);
 			saveFunction($1.identifier);
 		/* } */
 	}
@@ -84,23 +83,27 @@ params : OPEN_PARENTH CLOSE_PARENTH {
 	}
 
 separator
-	: SEPARATOR {
+	: {
 		$$.quadtupla = nextQuad();
-		fprintf(getDebugFile(), "Line %d: Found ; separator.\n", yylineno);
 	}
+	
+block
+	: OPEN_CLAUD programa CLOSE_CLAUD {
+		$$ = $2;
+	}
+	| ordre
 	
 programa : ordre separator programa {
 		backpatch($1, $2.quadtupla);
 		$$ = $3;
 	}
-	| ordre separator
 	| ordre
 	
 
-ordre : assign {
+ordre : assign SEPARATOR {
 		$$ = NULL;
 	}
-	| boolean_expr {
+	/* | boolean_expr {
 		if(errors_found == 0)
 		{
 			if($1.type == INTT)
@@ -125,10 +128,10 @@ ordre : assign {
 			}
 			$$ = NULL;
 		}
-	}
+	} */
 	| conditional
 	| loop
-	| function_call {
+	| function_call SEPARATOR {
 		$$ = NULL;
 	}
 
@@ -155,7 +158,7 @@ input_params
 	}
 	
 if_expr
-	: IF OPEN_PARENTH boolean_expr CLOSE_PARENTH THEN {
+	: IF OPEN_PARENTH boolean_expr CLOSE_PARENTH {
 		fprintf(getDebugFile(), "Line %d:  IF header found.\n", yylineno);
 		if($3.type != BOOLT)
 		{
@@ -180,17 +183,17 @@ start_else
 	}
 	
 conditional 
-	: if_expr programa FI {
+	: if_expr block {
 		fprintf(getDebugFile(), "Line %d:  If without else-clause finished.\n", yylineno);
 		backpatch($1.trueList, $1.quadtupla);
-		$$ = mergeLists($1.falseList, $3);
+		$$ = mergeLists($1.falseList, $2);
 	}
-	| if_expr OPEN_CLAUD programa CLOSE_CLAUD else start_else OPEN_CLAUD programa CLOSE_CLAUD {
+	| if_expr block else start_else block {
 		fprintf(getDebugFile(), "Line %d:  If with else-clause finished.\n", yylineno);
 		backpatch($1.trueList, $1.quadtupla);
-		backpatch($1.falseList, $6.quadtupla);
-		$$ = mergeLists($5.nextList, $8);
-		$$ = mergeLists($$, $3);
+		backpatch($1.falseList, $4.quadtupla);
+		$$ = mergeLists($3.nextList, $5);
+		$$ = mergeLists($$, $2);
 	}
 	
 while

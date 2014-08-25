@@ -551,10 +551,18 @@ void printByteCodeOp(FILE * fi, bytecode_entry *line, char length)
 			printIfByteCode(fi, line);
 			printGoto(fi, line);
 			break;
-			
+		case ASSIGNMENT:
+			printPushVar(fi, line->val2);
+			printPopVar(fi, line->val1);
+			break;
+		case ASSIGNMENT_UN:
+			printByteCodeOpRel(fi, line);
+			printPopVar(fi, line->val1);
+			break;
 		case ASSIGNMENT_OP:
 			printByteCodeOpRel(fi, line);
 			printPopVar(fi, line->val1);
+			break;
 		case GOTO:
 			printGoto(fi, line);
 			break;

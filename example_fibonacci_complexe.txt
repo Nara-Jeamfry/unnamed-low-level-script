@@ -13,8 +13,8 @@ fibonacci( int n )
 
 suma(integer int)
 {
-	hola := "a";
-	hola := hola + "b";
+	hola := "asdf";
+	hola := hola + 1;
 	if(12313+1 > 2)
 	{
 		hola := 1;

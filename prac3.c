@@ -580,13 +580,31 @@ void printByteCodeOpRel(FILE * fi, bytecode_entry *op)
 			printPushVar(fi, op->val3);
 			writeByte(fi, BYT_ADDI);
 			break;
+		case ADDF:
+			printPushVar(fi, op->val2);
+			printPushVar(fi, op->val3);
+			writeByte(fi, BYT_ADDF);
+			break;
+		case ADDS:
+			printPushVar(fi, op->val2);
+			printPushVar(fi, op->val3);
+			writeByte(fi, BYT_ADDS);
+			break;
+		case I2S:
+			printPushVar(fi, op->val2);
+			writeByte(fi, BYT_I2S);
+			break;
 		default:
 			return;
 	}
 }
 
 void printPopVar(FILE * fi, C3A_value *var)
-{
+{	
+	if(var == NULL)
+	{
+		return;
+	}
 	switch(var->type)
 	{
 		case VAL_TEMP:
@@ -600,11 +618,14 @@ void printPopVar(FILE * fi, C3A_value *var)
 		default:
 			break;
 	}
-	printByteCodeVar(fi, var);
 }
 
 void printPushVar(FILE * fi, C3A_value *var)
 {
+	if(var == NULL)
+	{
+		return;
+	}
 	switch(var->type)
 	{
 		case VAL_TEMP:
@@ -616,14 +637,16 @@ void printPushVar(FILE * fi, C3A_value *var)
 			writeByte(fi, var->container->id);
 			break;
 		case VAL_INTL:
-			writeByte(fi, BYT_PUSHINT);
+			writeByte(fi, BYT_PUSHI);
 			writeByteInt(fi, var->value.literalI);
 			break;
 		case VAL_FLOATL:
-			writeByte(fi, BYT_PUSHFLOAT);
+			writeByte(fi, BYT_PUSHF);
 			writeByteFloat(fi, var->value.literalF);
 			break;
 		case VAL_STRINGL:
+			writeByte(fi, BYT_PUSHS);
+			writeStringBytes(fi, var->value.literalS);
 			break;
 		case VAL_TYPE:
 			break;
@@ -633,7 +656,11 @@ void printPushVar(FILE * fi, C3A_value *var)
 }
 
 void printByteCodeVar(FILE * fi, C3A_value *var)
-{
+{	
+	if(var == NULL)
+	{
+		return;
+	}
 	switch(var->type)
 	{
 		case VAL_TEMP:
@@ -643,12 +670,13 @@ void printByteCodeVar(FILE * fi, C3A_value *var)
 			writeByte(fi, var->container->id);
 			break;
 		case VAL_INTL:
-			writeByte(fi, (char)var->value.literalI);
+			writeByteInt(fi, var->value.literalI);
 			break;
 		case VAL_FLOATL:
-			writeByte(fi, (char)var->value.literalF);
+			writeByteFloat(fi, var->value.literalF);
 			break;
 		case VAL_STRINGL:
+			writeStringBytes(fi, var->value.literalS);
 			break;
 		case VAL_TYPE:
 			break;

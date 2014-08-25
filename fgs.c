@@ -66,27 +66,82 @@ functions * read_file(char * fi)
 			switch(op)
 			{
 				case BYT_GOTO:
-					fprintf(stdout, "%d: Goto: %d\n", offset-2, fi[offset++]);
+					fprintf(stdout, "%X: goto %X\n", offset-2, fi[offset++]);
 					break;
 				case BYT_PUSHVAR:
-					fprintf(stdout, "%d: Push var: %d\n", offset-2, fi[offset++]);
+					fprintf(stdout, "%X: pushvar %d\n", offset-2, fi[offset++]);
 					break;
-				case BYT_PUSHINT:
-					fprintf(stdout, "%d: Push int: %d\n", offset-2, fi[offset++]);
+				case BYT_PUSHI:
+					fprintf(stdout, "%X: pushi %d\n", offset-2, *(int *)&fi[offset++]);
+					offset+=3;
 					break;
-				case BYT_PUSHFLOAT:
-					fprintf(stdout, "%d: Push float: %f\n", offset-2, fi[offset++]);
+				case BYT_PUSHF:
+					fprintf(stdout, "%X: pushf %f\n", offset-2, *(float *)&fi[offset++]);
+					offset+=3;
+					break;
+				case BYT_PUSHS:
+					fprintf(stdout, "%X: pushs \"%s\"\n", offset-2, readStringBytes(&offset, fi));
+					break;
+				case BYT_POPVAR:
+					fprintf(stdout, "%X: pop %d\n", offset-2, fi[offset++]);
+					break;
+				case BYT_I2S:
+					fprintf(stdout, "%X: i2s\n", offset-2);
+					break;
+				case BYT_ADDI:
+					fprintf(stdout, "%X: addi\n", offset-2);
+					break;
+				case BYT_SUBI:
+					fprintf(stdout, "%X: subi\n", offset-2);
+					break;
+				case BYT_MULI:
+					fprintf(stdout, "%X: muli\n", offset-2);
+					break;
+				case BYT_DIVI:
+					fprintf(stdout, "%X: divi\n", offset-2);
+					break;
+				case BYT_ADDF:
+					fprintf(stdout, "%X: addf\n", offset-2);
+					break;
+				case BYT_SUBF:
+					fprintf(stdout, "%X: subf\n", offset-2);
+					break;
+				case BYT_MULF:
+					fprintf(stdout, "%X: mulf\n", offset-2);
+					break;
+				case BYT_DIVF:
+					fprintf(stdout, "%X: divf\n", offset-2);
+					break;
+				case BYT_ADDS:
+					fprintf(stdout, "%X: adds\n", offset-2);
+					break;
+				case BYT_HALT:
+					fprintf(stdout, "%X: return\n", offset-2);
 					break;
 				case BYT_EQ:
+					fprintf(stdout, "%X: eq\n", offset-2);
+					break;
 				case BYT_NEQ:
+					fprintf(stdout, "%X: neq\n", offset-2);
+					break;
 				case BYT_LTI:
+					fprintf(stdout, "%X: lti\n", offset-2);
+					break;
+				case BYT_LEI:
+					fprintf(stdout, "%X: lei\n", offset-2);
+					break;
+				case BYT_GTI:
+					fprintf(stdout, "%X: gti\n", offset-2);
+					break;
 				case BYT_GEI:
+					fprintf(stdout, "%X: gei\n", offset-2);
+					break;
 				default:
-					fprintf(stdout, "%d: Unknown op %d\n", offset-1, op);
+					fprintf(stdout, "%X: Unknown op %X\n", offset-1, op);
 			}
 		}
 		
-		fprintf(stdout, "Function %d ended at offset %d\n", i+1, offset-1);
+		fprintf(stdout, "Function %d ended at offset %X\n", i+1, offset-1);
 		
 	}
 	

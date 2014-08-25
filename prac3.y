@@ -453,6 +453,49 @@ addition_expr
 			aux->val3 = $3.variable;
 			$$.variable = aux->val1;
 		}
+		if(opresult == STRINGT)
+		{
+			if($1.type != STRINGT || $3.type != STRINGT)
+			{
+				op = ASSIGNMENT_UN;
+				aux = gen_code_op(op);
+				if($1.type != STRINGT)
+				{
+					if($1.type == INTT)
+					{
+						aux->oprel=I2S;
+					}
+					else if($1.type == FLOATT)
+					{
+						aux->oprel=F2S;
+					}
+					aux->val1 = tempLocation();
+					aux->val2 = $1.variable;
+					$1.variable = aux->val1;
+				}
+				if($3.type != STRINGT)
+				{
+					if($3.type == INTT)
+					{
+						aux->oprel=I2S;
+					}
+					else if($3.type == FLOATT)
+					{
+						aux->oprel=F2S;
+					}
+					aux->val1 = tempLocation();
+					aux->val2 = $3.variable;
+					$3.variable = aux->val1;
+				}
+			}
+			op = ASSIGNMENT_OP;
+			aux=gen_code_op(op);
+			aux->oprel = ADDS;
+			aux->val1 = tempLocation();
+			aux->val2 = $1.variable;
+			aux->val3 = $3.variable;
+			$$.variable = aux->val1;
+		}
 	}
 	| addition_expr SUB multiplication_expr {
 		int opresult = canIOperateThem($1, $3, REST);

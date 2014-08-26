@@ -25,3 +25,5 @@
 *.tmp.c
 *.c3a
 log.txt
+
+lua*

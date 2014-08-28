@@ -13,6 +13,7 @@ SRCY = prac3y.tmp.c
 SRCH = prac3.h
 SRCSYM = symtab.c
 YHEADER = prac3y.h
+LIBS = fgs_stack.c
 
 INTC = fgs.c
 INTH = fgs.h
@@ -43,7 +44,7 @@ testfgs : compile testf
 
 compile : $(SRCL) $(SRCY)
 	$(CC) -o $(BIN) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(LIB)
-	$(CC) -o $(INTBIN) $(CFLAGS) $(INTC) $(INTH)
+	$(CC) -o $(INTBIN) $(CFLAGS) $(INTC) $(LIBS)
 	
 $(SRCL) : $(IN_LEX)
 	$(LEX) $(LFLAGS) $<

@@ -20,18 +20,35 @@ typedef struct function_container {
 	
 	type *types;
 	
-	char start;
+	char * start;
+	unsigned char offset;
 
 } function;
+
+typedef struct framerl {
+	var * variables;
+	
+	char pc;
+	
+	function * func;
+	
+	stack * datastack;
+	
+	char * ops;
+} frame;
 
 typedef struct function_list {
 	function *value;
 	struct function_list *next;
 } functions;
 
+functions * globalFunctions;
 
-function *findFunction(char , functions *);
+function *findFunction(char, functions *);
+function *findFunctionByName(char *, functions *);
 char *readStringBytes(int *, char *);
+
+void print(char *);
 
 functions * read_file(char *);
 char * parse_file(FILE *);

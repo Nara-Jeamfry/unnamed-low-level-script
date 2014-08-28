@@ -228,7 +228,7 @@ void printIfByteCode(FILE *, bytecode_entry *);
 void printCode(FILE *);
 
 char *printOp(bytecode_entry *, int *);
-char *printC3AVal(C3A_value *);
+char *printC3AVal(C3A_value *, int *);
 char *printRelOp(REL_INST_SET);
 
 C3A_value_container *checkNewVar(C3A_value *, C3A_value_container *);

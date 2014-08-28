@@ -1,7 +1,8 @@
 fibonacci( int n )
 {
 	x := 1;
-	y := 1.0;
+	y := 1;
+	fib := 0;
 	suma();
 	for (sum in 3..n) {
 		fib := x + y;

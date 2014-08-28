@@ -143,7 +143,7 @@ function_call
 		aux->gotoL = 1;
 	}
 	| ID OPEN_PARENTH input_params CLOSE_PARENTH {
-		 /*Load input params into stack */
+		/*Load input params into stack */
 		fprintf(getDebugFile(), "\nLine %d: Function call with params.\n", yylineno);
 	}
 	

@@ -130,6 +130,7 @@ C3A_value *litLocationInt(int i)
 	C3A_value *aux = malloc(sizeof(C3A_value));
 	aux->value.literalI = i;
 	aux->type = 2;
+	codeOffset+=3;
 	return aux;
 }
 
@@ -138,6 +139,7 @@ C3A_value *litLocationFloat(float f)
 	C3A_value *aux = malloc(sizeof(C3A_value));
 	aux->value.literalF = f;
 	aux->type = 3;
+	codeOffset+=3;
 	return aux;
 }
 
@@ -146,6 +148,7 @@ C3A_value *litLocationString(char *word)
 	C3A_value *aux = malloc(sizeof(C3A_value));
 	aux->value.literalS = word;
 	aux->type = 4;
+	codeOffset+=strlen(word);
 	return aux;
 }
 
@@ -220,18 +223,35 @@ bytecode_entry *gen_code_op(INST_SET op)
 		codeEnd->next = newQuad;
 		codeEnd = newQuad;
 	}
+	
 	switch(op)
 	{
 		case GOTO:
+			fprintf(getDebugFile(), "Added goto at code_offset %d\n", codeOffset);
 			codeOffset+=GOTO_OFFSET;
 			break;
 		case IF_OP:
+			fprintf(getDebugFile(), "Added if at code_offset %d\n", codeOffset);
 			codeOffset+=IF_OP_OFFSET;
 			break;
 		case CALL:
+			fprintf(getDebugFile(), "Added call at code_offset %d\n", codeOffset);
 			codeOffset+=CALL_OFFSET;
 			break;
+		case ASSIGNMENT:
+			fprintf(getDebugFile(), "Added assignment at code_offset %d\n", codeOffset);
+			codeOffset+=ASSIGNMENT_OFFSET;
+			break;
+		case ASSIGNMENT_UN:
+			fprintf(getDebugFile(), "Added unary assignment at code_offset %d\n", codeOffset);
+			codeOffset+=ASSIGNMENTUN_OFFSET;
+			break;
+		case ASSIGNMENT_OP:
+			fprintf(getDebugFile(), "Added operated assignment at code_offset %d\n", codeOffset);
+			codeOffset+=ASSIGNMENTOP_OFFSET;
+			break;
 		default:
+			fprintf(getDebugFile(), "Added op at code_offset %d\n", codeOffset);
 			codeOffset++;
 			break;
 	}
@@ -688,7 +708,7 @@ void printByteCodeVar(FILE * fi, C3A_value *var)
 void printGoto(FILE * fi, bytecode_entry *op)
 {
 	writeByte(fi, 01);
-	writeByte(fi, (char)op->gotoL+headerLength+opsLength);
+	writeByte(fi, (char)op->gotoL/* +headerLength+opsLength */);
 }
 
 void printIfByteCode(FILE * fi, bytecode_entry *op)
@@ -786,6 +806,9 @@ void printCode(FILE * fi)
 	
 	section = firstFunction;
 	
+	lineNumber = 45;
+	headerLength = 45;
+	
 	while(section)
 	{
 		line = section->first_code;
@@ -814,30 +837,31 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 {
 	char * aux;
 	char * result;
+	int auxlines = 0;
 	
 	switch(op->op)
 	{
 		case IF_OP:
 			result = malloc(sizeof(char)*(14 + 100)+4);
-			sprintf(result, "-%d: %s\n-%d: %s\n-%d: %s \n-%d: %s \n-%d: %s\n-%d: GOTO\n-%d: #%d", (*lineNumber),
+			sprintf(result, "-%X: %s\n-%X: %s\n-%X: %s \n-%X: %s \n-%X: %s\n-%X: GOTO\n-%X: #%X", (*lineNumber),
 											"push",
 											(*lineNumber)+1,
-											printC3AVal(op->val1),
+											printC3AVal(op->val1, &auxlines),
 											(*lineNumber)+2,
 											"push",
 											(*lineNumber)+3,
-											printC3AVal(op->val2),
+											printC3AVal(op->val2, &auxlines),
 											(*lineNumber)+4,
 											printRelOp(op->oprel),
 											(*lineNumber)+5,
 											(*lineNumber)+6,
 											op->gotoL+headerLength+opsLength);
-			(*lineNumber)+=IF_OP_OFFSET;
+			(*lineNumber)+=IF_OP_OFFSET + auxlines;
 			return result;
 		break;
 		case GOTO:
 			result = malloc(sizeof(char)*(5+11)+4);
-			sprintf(result, "-%d: GOTO\n-%d: #%d", (*lineNumber), 
+			sprintf(result, "-%X: GOTO\n-%X: #%X", (*lineNumber), 
 											(*lineNumber)+1,
 											op->gotoL+headerLength+opsLength);
 			(*lineNumber)+=GOTO_OFFSET;
@@ -845,41 +869,41 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 		break;
 		case ASSIGNMENT:
 			result = malloc(sizeof(char)*100+4);
-			sprintf(result, "%d: %s := %s", (*lineNumber), 
-											printC3AVal(op->val1), 
-											printC3AVal(op->val2));
-			(*lineNumber)++;
+			sprintf(result, "%X: %s := %s", (*lineNumber), 
+											printC3AVal(op->val1, &auxlines), 
+											printC3AVal(op->val2, &auxlines));
+			(*lineNumber)+=ASSIGNMENT_OFFSET + auxlines;
 			return result;
 		break;
 		case ASSIGNMENT_OP:
 			result = malloc(sizeof(char)*100+4);
-			sprintf(result, "%d: %s := %s %s %s", (*lineNumber), 
-											printC3AVal(op->val1), 
-											printC3AVal(op->val2),
+			sprintf(result, "%X: %s := %s %s %s", (*lineNumber), 
+											printC3AVal(op->val1, &auxlines), 
+											printC3AVal(op->val2, &auxlines),
 											printRelOp(op->oprel),
-											printC3AVal(op->val3));
-			(*lineNumber)++;
+											printC3AVal(op->val3, &auxlines));
+			(*lineNumber)+=ASSIGNMENTOP_OFFSET + auxlines;
 			return result;
 		break;
 		case ASSIGNMENT_UN:
 			result = malloc(sizeof(char)*100+4);
-			sprintf(result, "%d: %s := %s %s", (*lineNumber), printC3AVal(op->val1),
+			sprintf(result, "%X: %s := %s %s", (*lineNumber), printC3AVal(op->val1, &auxlines),
 											printRelOp(op->oprel),
-											printC3AVal(op->val2));
-			(*lineNumber)++;
+											printC3AVal(op->val2, &auxlines));
+			(*lineNumber)+=ASSIGNMENTUN_OFFSET + auxlines;
 			return result;
 		break;
 		case PARAM:
-			aux = printC3AVal(op->val1);
+			aux = printC3AVal(op->val1, &auxlines);
 			result = malloc(sizeof(char)*7+sizeof(aux)+4);
-			sprintf(result, "%d: PARAM %s", (*lineNumber), 
+			sprintf(result, "%X: PARAM %s", (*lineNumber), 
 											aux);
-			(*lineNumber)++;
+			(*lineNumber)+=1 + auxlines;
 			return result;
 		break;
 		case CALL:
 			result = malloc(sizeof(char)*10+11+4);
-			sprintf(result, "%d: CALL\n%d: @%d", (*lineNumber), 
+			sprintf(result, "%X: CALL\n%X: @%d", (*lineNumber), 
 											(*lineNumber)+1, 
 											op->gotoL);
 			(*lineNumber)+=CALL_OFFSET;
@@ -887,7 +911,7 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 		break;
 		case HALT:
 			result = malloc(sizeof(char)*14);
-			sprintf(result, "-%d: HALT", (*lineNumber));
+			sprintf(result, "-%X: HALT", (*lineNumber));
 			(*lineNumber)+=HALT_OFFSET;
 			return result;
 		break;
@@ -898,7 +922,7 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 	return "HAHAHA";
 }
 
-char *printC3AVal(C3A_value *value)
+char *printC3AVal(C3A_value *value, int *lineNumber)
 {
 	char *aux;
 	if(value == NULL)
@@ -921,17 +945,21 @@ char *printC3AVal(C3A_value *value)
 		case 2:
 			aux = malloc(sizeof(char) * 11);
 			sprintf(aux, "%d", value->value.literalI);
+			(*lineNumber)+=3;
 			return aux;
 		break;
 		case 3:
 			aux = malloc(sizeof(char) * 100);
 			sprintf(aux, "%.2f", value->value.literalF);
+			(*lineNumber)+=3;
 			return aux;
 		break;
 		case 4:
 			aux = malloc(sizeof(char) * strlen(value->value.literalS)+4);
 			sprintf(aux, "\"%s\"", value->value.literalS);
+			(*lineNumber)+=strlen(value->value.literalS)+1;
 			return aux;
+		break;
 		default:
 			return NULL;
 		break;

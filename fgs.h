@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "ops.h"
+#include "fgs_stack.h"
 
 typedef struct type_container {
 	char * name;

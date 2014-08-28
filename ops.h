@@ -37,7 +37,9 @@
 #define BYT_GEF 0x79
 
 
-
+#define ASSIGNMENTUN_OFFSET 5
+#define ASSIGNMENTOP_OFFSET 7
+#define ASSIGNMENT_OFFSET 4
 #define GOTO_OFFSET 2
 #define IF_OP_OFFSET 7
 #define CALL_OFFSET 2

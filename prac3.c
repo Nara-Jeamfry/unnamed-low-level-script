@@ -564,7 +564,10 @@ void printByteCodeOp(FILE * fi, bytecode_entry *line, char length)
 		case HALT:
 			writeByte(fi, 0);
 			break;
-		
+		case CALL:
+			writeByte(fi, 0xFF);
+			writeByte(fi, 0xFF);
+			break;
 		case IF_OP:
 			printPushVar(fi, line->val1);
 			printPushVar(fi, line->val2);
@@ -610,9 +613,51 @@ void printByteCodeOpRel(FILE * fi, bytecode_entry *op)
 			printPushVar(fi, op->val3);
 			writeByte(fi, BYT_ADDS);
 			break;
+		case SUBI:
+			printPushVar(fi, op->val2);
+			printPushVar(fi, op->val3);
+			writeByte(fi, BYT_SUBI);
+			break;
+		case SUBF:
+			printPushVar(fi, op->val2);
+			printPushVar(fi, op->val3);
+			writeByte(fi, BYT_SUBF);
+			break;
+		case MULI:
+			printPushVar(fi, op->val2);
+			printPushVar(fi, op->val3);
+			writeByte(fi, BYT_MULI);
+			break;
+		case MULF:
+			printPushVar(fi, op->val2);
+			printPushVar(fi, op->val3);
+			writeByte(fi, BYT_MULF);
+			break;
+		case DIVI:
+			printPushVar(fi, op->val2);
+			printPushVar(fi, op->val3);
+			writeByte(fi, BYT_DIVI);
+			break;
+		case DIVF:
+			printPushVar(fi, op->val2);
+			printPushVar(fi, op->val3);
+			writeByte(fi, BYT_DIVF);
+			break;
+		case I2F:
+			printPushVar(fi, op->val2);
+			writeByte(fi, BYT_I2F);
+			break;
 		case I2S:
 			printPushVar(fi, op->val2);
 			writeByte(fi, BYT_I2S);
+			break;
+		case F2I:
+			printPushVar(fi, op->val2);
+			writeByte(fi, BYT_F2I);
+			break;
+		case F2S:
+			printPushVar(fi, op->val2);
+			writeByte(fi, BYT_F2S);
 			break;
 		default:
 			return;

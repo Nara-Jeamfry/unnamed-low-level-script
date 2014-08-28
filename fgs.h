@@ -46,6 +46,15 @@ functions * globalFunctions;
 
 function *findFunction(char, functions *);
 function *findFunctionByName(char *, functions *);
+var *findVariable(var *, unsigned char);
+
+frame * createFrame(char *);
+
+void * debugFunction(frame *);
+void printStatus(frame *);
+
+void * runFunction(frame *);
+
 char *readStringBytes(int *, char *);
 
 void print(char *);

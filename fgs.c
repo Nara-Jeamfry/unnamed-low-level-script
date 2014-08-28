@@ -29,6 +29,7 @@ functions * read_file(char * fi)
 		fprintf(stdout, "Funcio %d\n", i+1);
 		actual->name = readStringBytes(&offset, fi);
 		type_count = fi[offset++];
+		actual->type_count = type_count;
 		
 		for(j=0; j<type_count; j++)
 		{
@@ -47,6 +48,8 @@ functions * read_file(char * fi)
 		
 		actual->id = fi[offset++];
 		fprintf(stdout, "Funcio %d: %s\n", actual->id, actual->name);
+		
+		actual->var_count = 7;
 		
 		
 		last_function->value = actual;
@@ -186,6 +189,184 @@ function *findFunctionByName(char * name, functions *list)
 	return NULL;
 }
 
+void * runFunction(frame *actualFrame)
+{
+	/* blu bla bli */
+	
+	
+}
+
+void * debugFunction(frame *actualFrame)
+{
+	char * op = actualFrame->func->start;
+	char offset = actualFrame->func->offset;
+	
+	stacke * aux1, * aux2, * auxres;
+	var * auxvar;
+	
+	while(op[actualFrame->pc] != 0)
+	{
+		fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
+		switch(op[actualFrame->pc])
+		{
+			case BYT_GOTO:
+				print("--debugFunction-- Found goto\n");
+				actualFrame->pc = op[(actualFrame->pc)+1];
+				break;
+			case BYT_PUSHI:
+				print("--debugFunction-- Found pushi\n");
+				aux1 = malloc(sizeof(stacke));
+				aux1->type = 0;
+				aux1->value.literalI = *(int *)&(op[(actualFrame->pc)+1]);
+				StackPush(actualFrame->datastack, aux1);
+				actualFrame->pc = (actualFrame->pc)+5;
+				break;
+			case BYT_PUSHF:
+				print("--debugFunction-- Found pushf\n");
+				aux1 = malloc(sizeof(stacke));
+				aux1->type = 0;
+				aux1->value.literalF = *(float *)&(op[(actualFrame->pc)+1]);
+				StackPush(actualFrame->datastack, aux1);
+				actualFrame->pc = (actualFrame->pc)+5;
+				break;
+			case BYT_PUSHVAR:
+				print("--debugFunction-- Found pushvar\n");
+				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
+				aux1 = malloc(sizeof(stacke));
+				aux1->type = 0;
+				aux1->value.literalI = auxvar->value.literalI;
+				StackPush(actualFrame->datastack, aux1);
+				actualFrame->pc = (actualFrame->pc)+2;
+				break;
+			case BYT_ADDI:
+				print("--debugFunction-- Found addi\n");
+				aux1 = StackPop(actualFrame->datastack);
+				aux2 = StackPop(actualFrame->datastack);
+				aux1->value.literalI += aux2->value.literalI;
+				StackPush(actualFrame->datastack, aux1);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_SUBI:
+				print("--debugFunction-- Found subi\n");
+				aux1 = StackPop(actualFrame->datastack);
+				aux2 = StackPop(actualFrame->datastack);
+				aux2->value.literalI -= aux1->value.literalI;
+				StackPush(actualFrame->datastack, aux2);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_LTI:
+				print("--debugFunction-- Found lti\n");
+				aux1 = StackPop(actualFrame->datastack);
+				aux2 = StackPop(actualFrame->datastack);
+				fprintf(stdout, "--debugFunction-- Comparing %d and %d.\n", aux2->value.literalI, aux1->value.literalI);
+				if(aux2->value.literalI < aux1->value.literalI)
+				{
+					print("--debugFunction-- It is less!\n");
+					actualFrame->pc = (actualFrame->pc)+1;
+				}
+				else
+				{
+					print("--debugFunction-- It is NOT less!\n");
+					actualFrame->pc = (actualFrame->pc)+3;
+				}
+				break;
+			case BYT_POPVAR:
+				print("--debugFunction-- Found popvar\n");
+				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
+				aux1 = StackPop(actualFrame->datastack);
+				auxvar->value.literalI = aux1->value.literalI;
+				actualFrame->pc = (actualFrame->pc)+2;
+				break;
+			default:
+				print("--debugFunction-- Found unknown op\n");
+				actualFrame->pc = (actualFrame->pc)+1;
+		}
+		printStatus(actualFrame);
+	}
+	fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
+	print("--debugFunction-- Found HALT!\n");
+	
+	return NULL;
+}
+
+void printStatus(frame * fr)
+{
+	fprintf(stdout, "Actual status: %d elems on stack.\n\n", fr->datastack->top+1);
+}
+
+frame * createFrame(char * function)
+{
+	frame * result = malloc(sizeof(frame));
+	int i;
+	var * aux, * lastaux;
+	
+	print("--createFrame-- Allocating memory...\n");
+	result->variables = NULL;
+	
+	if(globalFunctions == NULL)
+	{
+		print("--createFrame-- WELL THIS IS EMBARRASSING WE DO NOT HAVE FUNCTIONS THX\n");
+		return NULL;
+	}
+	else
+	{
+		print("--createFrame-- We have functions! Let's search for it.\n");
+		result->func = findFunctionByName(function, globalFunctions);
+		if(result->func == NULL)
+			print("--createFrame-- Woops. Didn't found that one.\n");
+		else
+			print("--createFrame-- FOUND!\n");
+	}
+	
+	result->pc = result->func->offset+1;
+	
+	fprintf(stdout, "--createFrame-- Gonna allocate all the variables (%d).\n", result->func->var_count);
+	
+	for(i=0; i<result->func->var_count; i++)
+	{
+		lastaux = malloc(sizeof(var));
+	
+		lastaux->id = i+1;
+	
+		if(result->variables == NULL)
+		{
+			print("--createFrame-- First variable! Added.\n");
+			result->variables = lastaux;
+			aux = lastaux;
+		}
+		else
+		{
+			fprintf(stdout, "--createFrame-- Added variable %d.\n", i+1);
+			aux->next = lastaux;
+			aux = lastaux;
+		}
+	}
+	
+	result->datastack = StackInit(128);
+	print("--createFrame-- Stack reserved!\n");
+	
+	return result;
+}
+
+var *findVariable(var * variables, unsigned char id)
+{
+	fprintf(stdout, "--findVariable-- Searching var %d.\n", id);
+	char found = 0;
+	var * aux = variables;
+	while(aux && !found)
+	{
+		if(aux->id == id)
+		{
+			print("Found :)\n");
+			found = 1;
+			return aux;
+		}
+		aux = aux->next;
+	}
+	print("--findVariable-- Not found :(\n");
+	return NULL;
+}
+
 char *readStringBytes(int *offset, char * text)
 {
 	char length = *(text+*offset);
@@ -254,7 +435,24 @@ int main()
 		exit(1);
 	}
 	
-	read_file(parse_file(file));
+	print("Reading file...\n");
+	globalFunctions = read_file(parse_file(file));
 	
+	print("Closing the file...\n");
 	fclose(file);
+	
+	print("Now, we're gonna try to load fibonacci function\n");
+	basicFrame = createFrame("suma");
+	
+	print("Selecting manually the input var for fibonacci\n");
+	input = findVariable(basicFrame->variables, 1);
+	input->type = 0;
+	input->value.literalI = 15;
+	
+	fprintf(stdout, "Now var n is: %d\n", basicFrame->variables->value);
+	
+	print("HERE WE GO!\n");
+	debugFunction(basicFrame);
+	
+	fprintf(stdout, "Fibonacci number on 15th position is: %d\n", findVariable(basicFrame->variables, 4)->value.literalI);
 }

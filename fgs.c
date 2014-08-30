@@ -522,7 +522,7 @@ int main()
 {
 	fprintf(stdout, "Benvingut a l'intèrpret de FastGameScript!\n\n");
 	
-	char * name = "example_fibonacci_complexe.txt";
+	char * name = "example_fibonacci_complexe.fgs";
 	
 	fprintf(stdout, "Intentarem llegir el codi de l'arxiu \"%s\"!\n", name);
 	

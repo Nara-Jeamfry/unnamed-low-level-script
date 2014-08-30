@@ -1009,6 +1009,9 @@ int parseFile(FILE * file, char * output_name)
 			fprintf(stdout, "Writing ByteCode file!");
 		printByteCode(getByteCodeFile());
 	}
+	/* if(verbose)
+		fprintf(stdout, "Cleaning memory...\n");
+	cleanMemory(); */
 	if(verbose)
 			fprintf(stdout, "Fi!\n");
 	closeFiles();

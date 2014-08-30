@@ -47,7 +47,7 @@ void StackPush(stack * st, stacke * elem)
 	stacke * element;
 	if(!StackFull(st))
 	{
-		if(verbose)
+		if(stackverbose)
 			fprintf(stdout, "--StackPush-- Correctly pushed value %d.\n", elem->value.literalI);
 		element = st->contents;
 		st->contents = malloc(sizeof(stacke));
@@ -65,7 +65,7 @@ stacke * StackPop(stack * st)
 		element = st->contents;
 		st->contents = element->last;
 		st->top--;
-		if(verbose)
+		if(stackverbose)
 			fprintf(stdout, "--StackPush-- Correctly poped value %d.\n", element->value.literalI);
 		return element;
 	}

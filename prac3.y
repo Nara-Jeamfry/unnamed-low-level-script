@@ -997,22 +997,22 @@ int parseFile(FILE * file, char * output_name)
 	yylineno = 1;
 	yyin = file;
 	byteCodeName = output_name;
-	if(verbose)
-			fprintf(stdout, "Starting parse!");
+	if(bisonverbose)
+			fprintf(stdout, "Starting parse!\n");
 	yyparse();
 	if(errors_found == 0)
 	{
-		if(verbose)
-			fprintf(stdout, "Printing code!");
+		if(bisonverbose)
+			fprintf(stdout, "Printing code!\n");
 		printCode(getCodeFile());
-		if(verbose)
-			fprintf(stdout, "Writing ByteCode file!");
+		if(bisonverbose)
+			fprintf(stdout, "Writing ByteCode file!\n");
 		printByteCode(getByteCodeFile());
 	}
-	/* if(verbose)
-		fprintf(stdout, "Cleaning memory...\n");
-	cleanMemory(); */
-	if(verbose)
+	/* if(bisonverbose)
+		fprintf(stdout, "Cleaning memory...\n"); */
+	cleanMemory(); 
+	if(bisonverbose)
 			fprintf(stdout, "Fi!\n");
 	closeFiles();
 	return 0;

@@ -30,9 +30,9 @@ typedef struct stack_struct {
 	int maxSize;
 } stack;
 
-#ifndef VERBOSE
-#define VERBOSE
-char verbose;
+#ifndef STACKVERBOSE
+#define STACKVERBOSE
+char stackverbose;
 #endif
 
 stack * StackInit(int);

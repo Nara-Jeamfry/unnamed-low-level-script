@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "fgs_copia.h"
 #include "prac3.h"
 
@@ -478,7 +479,7 @@ var *findVariable(var * variables, unsigned char id)
 	{
 		if(aux->id == id)
 		{
-			print("Found :)\n");
+			print("--findVariable-- Found :)\n");
 			found = 1;
 			return aux;
 		}
@@ -586,20 +587,28 @@ int main(int argc, char **argv)
 	int i;
 	char c;
 	
-	fprintf(stdout, "Found an option :o\n");
-	while((c = getopt(argc, argv, "v")) != -1)
+	while((c = getopt(argc, argv, "vgs")) != -1)
 	{
-		fprintf(stdout, "Found option %c :o\n", c);
+		if(verbose)
+			fprintf(stdout, "Found option %c\n", c);
 		switch(c)
 		{
 			case 'v':
 				verbose = 1;
 				break;
+			case 'g':
+				bisonverbose = 1;
+				break;
+			case 's':
+				stackverbose = 1;
+				break;
 			case '?':
-				printf("WOW WTF");
+				printf("Unknown option %c.", optopt);
+				exit(3);
 				break;
 			default: 
-				printf("WOW WTF WTF");
+				printf("This shouldn't happen?");
+				exit(99);
 				break;
 		}
 	}
@@ -613,9 +622,9 @@ int main(int argc, char **argv)
 	frame * basicFrame;
 	var * input;
 	
-	for(i=0; i<100; i++)
+	for(i=0; i<100000; i++)
 	{
-	
+		print("--------------\n");
 		openFile(name);
 		
 		file = open_file("example_fibonacci_complexe.bfgs");
@@ -652,15 +661,11 @@ int main(int argc, char **argv)
 			
 		if(findVariable(basicFrame->variables, 4)->value.literalI != 514229)
 		{
-			fprintf(stdout, "Cannot verify answer.");
+			fprintf(stdout, "Cannot verify answer %d.\n", i);
 			exit(4);
 		}
-		else
-		{
-			fprintf(stdout, "Verified answer %d.", i);
-		}
-		
+		print("--------------\n");
 	}
 	
-	fprintf(stdout, "Well that worked fine!");
+	fprintf(stdout, "Well that worked fine!\n");
 }

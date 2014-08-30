@@ -189,7 +189,14 @@ FILE * yyin;
 char verbose;
 #endif
 
+#ifndef BISONVERBOSE
+#define BISONVERBOSE
+char bisonverbose;
+#endif
+
 int nextQuad();
+
+void cleanMemory();
 
 C3A_value *tempLocation();
 C3A_value *varLocation(char *);

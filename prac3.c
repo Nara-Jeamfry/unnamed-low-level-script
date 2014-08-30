@@ -49,6 +49,26 @@ int nextQuad()
 	return codeOffset;
 }
 
+void cleanMemory()
+{
+	codeStart = NULL;
+	codeEnd = NULL;
+
+	firstFunction = NULL;
+	lastFunction = NULL;
+
+	firstLocal = NULL;
+	lastLocal = NULL;
+
+	firstType = NULL;
+	lastType = NULL;
+
+	codeOffset = 0;
+	localOffset = 1;
+	typeOffset = 0;
+	functionCount = 0;
+}
+
 C3A_value *tempLocation()
 {
 	C3A_value *aux = malloc(sizeof(C3A_value));
@@ -66,6 +86,7 @@ C3A_value *tempLocation()
 		char *auxName = malloc(sizeof(char)*14);
 		sprintf(auxName, "$t%d", aux->value.tempID);
 		new->name = auxName;
+		new->next = NULL;
 		
 		if(firstLocal == NULL)
 		{
@@ -103,6 +124,7 @@ C3A_value *varLocation(char * identifier)
 		new->value = aux;
 		new->id = localOffset++;
 		new->name = identifier;
+		new->next = NULL;
 		
 		if(firstLocal == NULL)
 		{
@@ -167,6 +189,7 @@ void addType(char * typeName)
 		new->value = type;
 		typeOffset++;
 		new->name = typeName;
+		new->next = NULL;
 		
 		if(firstType == NULL)
 		{
@@ -338,6 +361,7 @@ void saveFunction(char * identifier)
 	new->localLength = localOffset-1;
 	new->typeLength = typeOffset;
 	new->types = firstType;
+	new->next = NULL;
 	
 	codeStart = NULL;
 	codeEnd = NULL;
@@ -392,14 +416,19 @@ FILE *getDebugFile()
 void openDebugFile()
 {
 	debugFile = fopen("log.txt", "w");
+	if(debugFile == NULL)
+	{
+		fprintf(stdout, "Cannot open log file!\n");
+		exit(2);
+	}
 }
 
 void openByteCodeFile()
 {
-	byteCodeFile = fopen(byteCodeName, "w");
+	byteCodeFile = fopen(byteCodeName, "wb");
 	if(byteCodeFile == NULL)
 	{
-		fprintf(stdout, "Cannot open ByteCode file!");
+		fprintf(stdout, "Cannot open ByteCode file!\n");
 		exit(2);
 	}
 }
@@ -407,13 +436,30 @@ void openByteCodeFile()
 void openCodeFile()
 {
 	codeFile = fopen("code.c3a", "w");
+	if(codeFile == NULL)
+	{
+		fprintf(stdout, "Cannot open code file!\n");
+		exit(2);
+	}
 }
 
 void closeFiles()
 {
-	fclose(codeFile);
-	fclose(debugFile);
-	fclose(byteCodeFile);
+	if(fclose(codeFile)==EOF)
+	{
+		printf("Strange error ocurred while closing Code File.\n");
+	}
+	if(fclose(debugFile)==EOF)
+	{
+		printf("Strange error ocurred while closing Debug File.\n");
+	}
+	if(fclose(byteCodeFile)==EOF)
+	{
+		printf("Strange error ocurred while closing ByteCode File.\n");
+	}
+	codeFile = NULL;
+	debugFile = NULL;
+	byteCodeFile = NULL;
 }
 
 void writeByte(FILE * fi, char text)
@@ -535,7 +581,8 @@ void printByteCode(FILE * fi)
 		section = section->next;
 	}
 	
-	fprintf(stdout, "Total header space: %d\n", headerLength);
+	if(bisonverbose)
+		fprintf(stdout, "Total header space: %d\n", headerLength);
 	fprintf(getDebugFile(), "Total header space: %d\n", headerLength);
 	
 	functionID = 0;
@@ -813,9 +860,9 @@ void printCode(FILE * fi)
 	headerLength = opsLength = 0;
 	int codeLength = 0;
 	
-	if(fprintf(fi, "Bytecode---\n") <= 0)
+	if(fprintf(fi, "Bytecode---\n") < 0)
 	{
-		printError("Cannot write to file\n", "");
+		perror("An error ocurred:");
 		return;
 	}
 	
@@ -867,9 +914,9 @@ void printCode(FILE * fi)
 		{
 			res = fprintf(fi, "%s\n", printOp(line, &lineNumber));
 			
-			if(res <=0)
+			if(res <0)
 			{
-				printError("Cannot write to file\n","");
+				perror("An error ocurred:");
 				
 				return;
 			}

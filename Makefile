@@ -18,13 +18,17 @@ LIBS = fgs_stack.c
 INTC = fgs.c
 INTH = fgs.h
 
+INTCCOPY = fgs_copia.c
+INTHCOPY = fgs_copia.h
+
 BIN = prac3.exe
 INTBIN = fgs.exe
+INTBINCOPY = fgs_copia.exe
 
 LFLAGS = -n -o $(SRCL)
-YFLAGS = -d -o $(SRCY) --defines=$(YHEADER)
+YFLAGS = -d -v -o $(SRCY) --defines=$(YHEADER)
 CFLAGS = -ansi -g
-OTHERS = prac3y.h prac3y.output
+OTHERS = prac3y.h prac3y.tmp.output log.txt code.c3a output.byt *.stackdump *.bfgs
 
 FIBON = example_fibonacci_complexe.txt
 
@@ -36,15 +40,14 @@ EXEMPLE_ERRORS_FL = <prova_errors_fluxe.txt >output/output_exemple_errors_fl.txt
 
 all : compile
 
-testf : compile
-	./$(BIN) <$(FIBON)
-	
-testfgs : compile testf
+testfgs : compile compile_copia
 	./$(INTBIN)
 
 compile : $(SRCL) $(SRCY)
-	$(CC) -o $(BIN) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(LIB)
-	$(CC) -o $(INTBIN) $(CFLAGS) $(INTC) $(LIBS)
+	$(CC) -o $(INTBIN) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTC) $(LIBS)
+	
+compile_copia : $(SRCL) $(SRCY)
+	$(CC) -o $(INTBINCOPY) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTCCOPY) $(LIBS)
 	
 $(SRCL) : $(IN_LEX)
 	$(LEX) $(LFLAGS) $<
@@ -53,4 +56,4 @@ $(SRCY) : $(IN_YACC)
 	$(YACC) $(YFLAGS) $<
 
 clean : 
-	rm -f *~ $(BIN)* $(OTHERS) $(SRCL) $(SRCY) output/*
+	rm -f *~ $(BIN)* $(OTHERS) $(SRCL) $(SRCY) $(INTBINCOPY) $(INTBIN) output/*

@@ -482,7 +482,7 @@ FILE * open_file(char * name)
 	
 	FILE * file;
 	
-	file = fopen("output.byt", "rb");
+	file = fopen(name, "rb");
 	
 	return file;
 }
@@ -492,11 +492,44 @@ void print(char * text)
 	fprintf(stdout, text);
 }
 
+void openFile(char * name)
+{
+	FILE * source = fopen(name, "r");
+	char * pch;
+	
+	if(!source)
+	{
+		printf("couldn't open file \"%s\" for reading\n", name);
+		exit(1);
+	}
+	
+	pch = strchr(name, '.');
+	char * output = malloc(sizeof(char) * (pch-name+1+5));
+	strcpy(output, name);
+	pch = strchr(output, '.');
+	pch[1] = 'b';
+	pch[2] = 'f';
+	pch[3] = 'g';
+	pch[4] = 's';
+	pch[5] = '\0';
+	
+	fprintf(stdout, "--openFile-- Trying to save on \"%s\"\n", output);
+	
+	parseFile(source, output);
+}
+
 int main()
 {
-	fprintf(stdout, "Benvingut a l'intèrpret de FastGameScript!\n\nIntentarem llegir el codi de l'arxiu \"output.fgs\"!\n");
+	fprintf(stdout, "Benvingut a l'intèrpret de FastGameScript!\n\n");
 	
-	FILE * file = open_file("output.byt");
+	char * name = "example_fibonacci_complexe.txt";
+	
+	fprintf(stdout, "Intentarem llegir el codi de l'arxiu \"%s\"!\n", name);
+	
+	openFile(name);
+	
+	
+	FILE * file = open_file("example_fibonacci_complexe.bfgs");
 	frame * basicFrame;
 	var * input;
 	
@@ -508,6 +541,7 @@ int main()
 	
 	char answ;
 	scanf("%c\n", &answ);
+	
 	
 	while(answ != 'n')
 	{

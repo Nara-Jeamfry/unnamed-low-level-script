@@ -992,9 +992,11 @@ long_error
 	
 %%
 
-int main()
+int parseFile(FILE * file, char * output_name)
 {
 	yylineno = 1;
+	yyin = file;
+	byteCodeName = output_name;
 	if(verbose)
 			fprintf(stdout, "Starting parse!");
 	yyparse();

@@ -396,7 +396,12 @@ void openDebugFile()
 
 void openByteCodeFile()
 {
-	byteCodeFile = fopen("output.byt", "w");
+	byteCodeFile = fopen(byteCodeName, "w");
+	if(byteCodeFile == NULL)
+	{
+		fprintf(stdout, "Cannot open ByteCode file!");
+		exit(2);
+	}
 }
 
 void openCodeFile()

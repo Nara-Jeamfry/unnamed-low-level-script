@@ -178,6 +178,8 @@ INST_SET op, op2;
 
 int dataOffset;
 int headerLength, opsLength;
+char * byteCodeName;
+FILE * yyin;
 
 #endif
 
@@ -259,3 +261,5 @@ struct varia fromLitToVar(struct liter, char *);
 void storeSym(struct varia);
 int loadSym(struct varia, struct liter *);
 int isSymChosen(struct varia);
+
+int parseFile(FILE *, char *);

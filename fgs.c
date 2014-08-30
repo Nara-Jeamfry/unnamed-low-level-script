@@ -505,24 +505,32 @@ int main()
 		exit(1);
 	}
 	
-	print("Reading file...\n");
-	globalFunctions = read_file(parse_file(file));
+	char answ;
+	scanf("%c\n", &answ);
 	
-	print("Closing the file...\n");
+	while(answ != 'n')
+	{
+		print("Reading file...\n");
+		globalFunctions = read_file(parse_file(file));
+		
+		print("Closing the file...\n");
+		
+		print("Now, we're gonna try to load fibonacci function\n");
+		basicFrame = createFrame("fibonacci");
+		
+		print("Selecting manually the input var for fibonacci\n");
+		input = findVariable(basicFrame->variables, 1);
+		input->type = 0;
+		input->value.literalI = 70;
+		
+		fprintf(stdout, "Now var n is: %d\n", basicFrame->variables->value);
+		
+		print("HERE WE GO!\n");
+		runFunction(basicFrame);
+	
+		fprintf(stdout, "Fibonacci number on %dth position is: %d\n", findVariable(basicFrame->variables, 1)->value.literalI, findVariable(basicFrame->variables, 4)->value.literalI);
+		
+		scanf("%c\n", &answ);
+	}
 	fclose(file);
-	
-	print("Now, we're gonna try to load fibonacci function\n");
-	basicFrame = createFrame("suma");
-	
-	print("Selecting manually the input var for fibonacci\n");
-	input = findVariable(basicFrame->variables, 1);
-	input->type = 0;
-	input->value.literalI = 15;
-	
-	fprintf(stdout, "Now var n is: %d\n", basicFrame->variables->value);
-	
-	print("HERE WE GO!\n");
-	debugFunction(basicFrame);
-	
-	fprintf(stdout, "Fibonacci number on 15th position is: %d\n", findVariable(basicFrame->variables, 4)->value.literalI);
 }

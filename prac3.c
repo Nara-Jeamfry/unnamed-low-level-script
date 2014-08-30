@@ -38,11 +38,11 @@ C3A_value_container *lastLocal = NULL;
 C3A_value_container *firstType = NULL;
 C3A_value_container *lastType = NULL;
 
-int codeOffset = 0;
-int localOffset = 1;
-int typeOffset = 0;
-char functionCount = 0;
-int byteNumber;
+unsigned int codeOffset = 0;
+unsigned int localOffset = 1;
+unsigned int typeOffset = 0;
+unsigned char functionCount = 0;
+unsigned int byteNumber;
 
 int nextQuad()
 {

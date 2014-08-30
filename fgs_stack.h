@@ -1,5 +1,5 @@
 
-typedef struct varia {
+typedef struct variablerl {
 	char type; /* 0 for int, 1 for float, 2 for string */
 	
 	union var_values {
@@ -9,7 +9,7 @@ typedef struct varia {
 	} value;
 	
 	unsigned char id;
-	struct varia * next;
+	struct variablerl * next;
 } var;
 
 typedef struct stack_elem {
@@ -29,6 +29,11 @@ typedef struct stack_struct {
 	int top;
 	int maxSize;
 } stack;
+
+#ifndef VERBOSE
+#define VERBOSE
+char verbose;
+#endif
 
 stack * StackInit(int);
 

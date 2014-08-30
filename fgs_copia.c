@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "fgs.h"
+#include "fgs_copia.h"
 #include "prac3.h"
 
 functions * read_file(char * fi)
@@ -9,7 +9,7 @@ functions * read_file(char * fi)
 	char header[13] = { 'g', 'a', 'm', 'e', '_', 's', 'c', 'r', 'i', 'p', 't', 3, 0 };
 	if(memcmp(fi,header, 13))
 	{	
-		fprintf(stdout, "Hey! L'arxiu no és correcte! :(\n");
+		print("Hey! L'arxiu no és correcte! :(\n");
 		return NULL;
 	}
 	
@@ -23,11 +23,13 @@ functions * read_file(char * fi)
 	type * types = NULL, *auxtype = NULL;
 	
 	function_count = fi[offset++];
-	fprintf(stdout, "N. de funcions: %d\n", function_count);
+	if(verbose)
+		fprintf(stdout, "N. de funcions: %d\n", function_count);
 	
 	for(i=0; i<function_count; i++)
 	{
-		fprintf(stdout, "Funcio %d\n", i+1);
+		if(verbose)
+			fprintf(stdout, "Funcio %d\n", i+1);
 		actual->name = readStringBytes(&offset, fi);
 		type_count = fi[offset++];
 		actual->type_count = type_count;
@@ -40,7 +42,8 @@ functions * read_file(char * fi)
 				auxtype->next = types;
 			}
 			types->name = readStringBytes(&offset, fi);
-			fprintf(stdout, "Type %s\n", types->name);
+			if(verbose)
+					fprintf(stdout, "Type %s\n", types->name);
 			auxtype = types;
 		}
 		
@@ -48,7 +51,8 @@ functions * read_file(char * fi)
 		types = NULL;
 		
 		actual->id = fi[offset++];
-		fprintf(stdout, "Funcio %d: %s\n", actual->id, actual->name);
+		if(verbose)
+			fprintf(stdout, "Funcio %d: %s\n", actual->id, actual->name);
 		
 		actual->var_count = 7;
 		
@@ -68,93 +72,132 @@ functions * read_file(char * fi)
 		actual = findFunction(op, result);
 		actual->start = fi+offset;
 		actual->offset = offset-2-line;
-		fprintf(stdout, "Code for function %s, starting at %X:\n\n", actual->name, (unsigned char)actual->offset);
+		if(verbose)
+			fprintf(stdout, "Code for function %s, starting at %X:\n\n", actual->name, (unsigned char)actual->offset);
 		while(op != 0)
 		{
 			op = fi[offset++];
 			switch(op)
 			{
 				case BYT_GOTO:
-					fprintf(stdout, "%X: goto %X\n", offset-3-line, fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: goto %X\n", offset-3-line, fi[offset++]);
+					else
+						offset++;
 					break;
 				case BYT_PUSHVAR:
-					fprintf(stdout, "%X: pushvar %d\n", offset-3-line, fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: pushvar %d\n", offset-3-line, fi[offset++]);
+					else
+						offset++;
 					break;
 				case BYT_PUSHI:
-					fprintf(stdout, "%X: pushi %d\n", offset-3-line, *(int *)&fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: pushi %d\n", offset-3-line, *(int *)&fi[offset++]);
+					else
+						offset++;
 					offset+=3;
 					break;
 				case BYT_PUSHF:
-					fprintf(stdout, "%X: pushf %f\n", offset-3-line, *(float *)&fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: pushf %f\n", offset-3-line, *(float *)&fi[offset++]);
+					else
+						offset++;
 					offset+=3;
 					break;
 				case BYT_PUSHS:
-					fprintf(stdout, "%X: pushs \"%s\"\n", offset-3-line, readStringBytes(&offset, fi));
+					if(verbose)
+						fprintf(stdout, "%X: pushs \"%s\"\n", offset-3-line, readStringBytes(&offset, fi));
+					else
+						offset++;
 					break;
 				case BYT_POPVAR:
-					fprintf(stdout, "%X: pop %d\n", offset-3-line, fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: pop %d\n", offset-3-line, fi[offset++]);
+					else
+						offset++;
 					break;
 				case BYT_I2S:
-					fprintf(stdout, "%X: i2s\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: i2s\n", offset-3-line);
 					break;
 				case BYT_ADDI:
-					fprintf(stdout, "%X: addi\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: addi\n", offset-3-line);
 					break;
 				case BYT_SUBI:
-					fprintf(stdout, "%X: subi\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: subi\n", offset-3-line);
 					break;
 				case BYT_MULI:
-					fprintf(stdout, "%X: muli\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: muli\n", offset-3-line);
 					break;
 				case BYT_DIVI:
-					fprintf(stdout, "%X: divi\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: divi\n", offset-3-line);
 					break;
 				case BYT_ADDF:
-					fprintf(stdout, "%X: addf\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: addf\n", offset-3-line);
 					break;
 				case BYT_SUBF:
-					fprintf(stdout, "%X: subf\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: subf\n", offset-3-line);
 					break;
 				case BYT_MULF:
-					fprintf(stdout, "%X: mulf\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: mulf\n", offset-3-line);
 					break;
 				case BYT_DIVF:
-					fprintf(stdout, "%X: divf\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: divf\n", offset-3-line);
 					break;
 				case BYT_ADDS:
-					fprintf(stdout, "%X: adds\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: adds\n", offset-3-line);
 					break;
 				case BYT_HALT:
-					fprintf(stdout, "%X: return\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: return\n", offset-3-line);
 					break;
 				case BYT_EQ:
-					fprintf(stdout, "%X: eq\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: eq\n", offset-3-line);
 					break;
 				case BYT_NEQ:
-					fprintf(stdout, "%X: neq\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: neq\n", offset-3-line);
 					break;
 				case BYT_LTI:
-					fprintf(stdout, "%X: lti\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: lti\n", offset-3-line);
 					break;
 				case BYT_LEI:
-					fprintf(stdout, "%X: lei\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: lei\n", offset-3-line);
 					break;
 				case BYT_GTI:
-					fprintf(stdout, "%X: gti\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: gti\n", offset-3-line);
 					break;
 				case BYT_GEI:
-					fprintf(stdout, "%X: gei\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: gei\n", offset-3-line);
 					break;
 				default:
-					fprintf(stdout, "%X: Unknown op %X\n", offset-2-line, op);
+					if(verbose)
+						fprintf(stdout, "%X: Unknown op %X\n", offset-2-line, op);
 			}
 		}
 		
-		fprintf(stdout, "Function %d ended at offset %X\n", i+1, offset-1);
+		if(verbose)
+			fprintf(stdout, "Function %d ended at offset %X\n", i+1, offset-1);
 		
 	}
 	
-	fprintf(stdout, "Hey! Estic interpretant l'arxiu! :)\n");
+	if(verbose)
+		fprintf(stdout, "Hey! Estic interpretant l'arxiu! :)\n");
 	
 	return result;
 	
@@ -277,7 +320,8 @@ void * debugFunction(frame *actualFrame)
 	
 	while(op[actualFrame->pc] != 0)
 	{
-		fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
+		if(verbose)
+			fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
 		switch(op[actualFrame->pc])
 		{
 			case BYT_GOTO:
@@ -329,7 +373,8 @@ void * debugFunction(frame *actualFrame)
 				print("--debugFunction-- Found lti\n");
 				aux1 = StackPop(actualFrame->datastack);
 				aux2 = StackPop(actualFrame->datastack);
-				fprintf(stdout, "--debugFunction-- Comparing %d and %d.\n", aux2->value.literalI, aux1->value.literalI);
+				if(verbose)
+					fprintf(stdout, "--debugFunction-- Comparing %d and %d.\n", aux2->value.literalI, aux1->value.literalI);
 				if(aux2->value.literalI < aux1->value.literalI)
 				{
 					print("--debugFunction-- It is less!\n");
@@ -354,7 +399,8 @@ void * debugFunction(frame *actualFrame)
 		}
 		printStatus(actualFrame);
 	}
-	fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
+	if(verbose)
+		fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
 	print("--debugFunction-- Found HALT!\n");
 	
 	return NULL;
@@ -362,7 +408,8 @@ void * debugFunction(frame *actualFrame)
 
 void printStatus(frame * fr)
 {
-	fprintf(stdout, "Actual status: %d elems on stack.\n\n", fr->datastack->top+1);
+	if(verbose)
+		fprintf(stdout, "Actual status: %d elems on stack.\n\n", fr->datastack->top+1);
 }
 
 frame * createFrame(char * function)
@@ -391,7 +438,8 @@ frame * createFrame(char * function)
 	
 	result->pc = result->func->offset+1;
 	
-	fprintf(stdout, "--createFrame-- Gonna allocate all the variables (%d).\n", result->func->var_count);
+	if(verbose)
+		fprintf(stdout, "--createFrame-- Gonna allocate all the variables (%d).\n", result->func->var_count);
 	
 	for(i=0; i<result->func->var_count; i++)
 	{
@@ -407,7 +455,8 @@ frame * createFrame(char * function)
 		}
 		else
 		{
-			fprintf(stdout, "--createFrame-- Added variable %d.\n", i+1);
+			if(verbose)
+				fprintf(stdout, "--createFrame-- Added variable %d.\n", i+1);
 			aux->next = lastaux;
 			aux = lastaux;
 		}
@@ -421,7 +470,8 @@ frame * createFrame(char * function)
 
 var *findVariable(var * variables, unsigned char id)
 {
-	fprintf(stdout, "--findVariable-- Searching var %d.\n", id);
+	if(verbose)
+		fprintf(stdout, "--findVariable-- Searching var %d.\n", id);
 	char found = 0;
 	var * aux = variables;
 	while(aux && !found)
@@ -467,10 +517,12 @@ char * parse_file(FILE * fi)
 	int i = fread(result, 1, lSize, fi);
 	if(result==NULL)
 	{
+		if(verbose)
 		fprintf(stdout, "HEHEAIHEIAOEH");
 	}
 	if(i!=lSize)
 	{
+		if(verbose)
 		fprintf(stdout, "aoisjoaija");
 	}
 	
@@ -482,37 +534,102 @@ FILE * open_file(char * name)
 	
 	FILE * file;
 	
-	file = fopen("output.byt", "rb");
+	file = fopen(name, "rb");
 	
 	return file;
 }
 
 void print(char * text)
 {
-	fprintf(stdout, text);
+	if(verbose)
+		fprintf(stdout, text);
 }
 
-int main()
+void openFile(char * name)
 {
-	fprintf(stdout, "Benvingut a l'intèrpret de FastGameScript!\n\nIntentarem llegir el codi de l'arxiu \"output.fgs\"!\n");
+	FILE * source = fopen(name, "r");
+	char * pch;
 	
-	FILE * file = open_file("output.byt");
-	frame * basicFrame;
-	var * input;
+	if(verbose)
+		fprintf(stdout, "--openFile-- Trying to open \"%s\"\n", name);
 	
-	if(file==NULL)
+	if(!source)
 	{
-		fprintf(stdout, "Error al llegir caca pipi :( \n");
+		printf("couldn't open file \"%s\" for reading\n", name);
 		exit(1);
 	}
 	
-	char answ;
-	scanf("%c\n", &answ);
+	pch = strchr(name, '.');
+	char * output = malloc(sizeof(char) * (pch-name+1+5));
+	strcpy(output, name);
+	pch = strchr(output, '.');
+	pch[1] = 'b';
+	pch[2] = 'f';
+	pch[3] = 'g';
+	pch[4] = 's';
+	pch[5] = '\0';
 	
-	while(answ != 'n')
+	if(verbose)
+		fprintf(stdout, "--openFile-- Trying to save on \"%s\"\n", output);
+	
+	parseFile(source, output);
+	
+	fclose(source);
+}
+
+int main(int argc, char **argv)
+{
+	if(verbose)
+		fprintf(stdout, "Benvingut a l'intèrpret de FastGameScript!\n\n");
+	
+	char * name = "example_fibonacci_complexe.txt";
+	int i;
+	char c;
+	
+	fprintf(stdout, "Found an option :o\n");
+	while((c = getopt(argc, argv, "v")) != -1)
 	{
+		fprintf(stdout, "Found option %c :o\n", c);
+		switch(c)
+		{
+			case 'v':
+				verbose = 1;
+				break;
+			case '?':
+				printf("WOW WTF");
+				break;
+			default: 
+				printf("WOW WTF WTF");
+				break;
+		}
+	}
+	fprintf(stdout, "Found an option :o\n");
+	
+	if(verbose)
+		fprintf(stdout, "Intentarem llegir el codi de l'arxiu \"%s\"!\n", name);
+	
+	
+	FILE * file;
+	frame * basicFrame;
+	var * input;
+	
+	for(i=0; i<100; i++)
+	{
+	
+		openFile(name);
+		
+		file = open_file("example_fibonacci_complexe.bfgs");
+		
+		if(file==NULL)
+		{
+			fprintf(stdout, "Error al llegir caca pipi :( \n");
+			exit(1);
+		}
+		
 		print("Reading file...\n");
 		globalFunctions = read_file(parse_file(file));
+		
+		fclose(file);
 		
 		print("Closing the file...\n");
 		
@@ -522,16 +639,28 @@ int main()
 		print("Selecting manually the input var for fibonacci\n");
 		input = findVariable(basicFrame->variables, 1);
 		input->type = 0;
-		input->value.literalI = 70;
+		input->value.literalI = 30;
 		
-		fprintf(stdout, "Now var n is: %d\n", basicFrame->variables->value);
+		if(verbose)
+			fprintf(stdout, "Now var n is: %d\n", basicFrame->variables->value);
 		
 		print("HERE WE GO!\n");
 		runFunction(basicFrame);
 	
-		fprintf(stdout, "Fibonacci number on %dth position is: %d\n", findVariable(basicFrame->variables, 1)->value.literalI, findVariable(basicFrame->variables, 4)->value.literalI);
+		if(verbose)
+			fprintf(stdout, "Fibonacci number on %dth position is: %d\n", findVariable(basicFrame->variables, 1)->value.literalI, findVariable(basicFrame->variables, 4)->value.literalI);
+			
+		if(findVariable(basicFrame->variables, 4)->value.literalI != 514229)
+		{
+			fprintf(stdout, "Cannot verify answer.");
+			exit(4);
+		}
+		else
+		{
+			fprintf(stdout, "Verified answer %d.", i);
+		}
 		
-		scanf("%c\n", &answ);
 	}
-	fclose(file);
+	
+	fprintf(stdout, "Well that worked fine!");
 }

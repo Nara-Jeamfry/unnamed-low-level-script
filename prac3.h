@@ -181,6 +181,12 @@ int headerLength, opsLength;
 
 #endif
 
+
+#ifndef VERBOSE
+#define VERBOSE
+char verbose;
+#endif
+
 int nextQuad();
 
 C3A_value *tempLocation();

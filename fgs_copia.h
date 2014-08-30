@@ -43,6 +43,11 @@ typedef struct function_list {
 	struct function_list *next;
 } functions;
 
+#ifndef VERBOSE
+#define VERBOSE
+char verbose;
+#endif
+
 functions * globalFunctions;
 
 function *findFunction(char, functions *);

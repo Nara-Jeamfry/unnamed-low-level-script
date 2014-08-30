@@ -995,13 +995,20 @@ long_error
 int main()
 {
 	yylineno = 1;
+	if(verbose)
+			fprintf(stdout, "Starting parse!");
 	yyparse();
 	if(errors_found == 0)
 	{
+		if(verbose)
+			fprintf(stdout, "Printing code!");
 		printCode(getCodeFile());
+		if(verbose)
+			fprintf(stdout, "Writing ByteCode file!");
 		printByteCode(getByteCodeFile());
 	}
-	fprintf(stdout, "Fi!\n");
+	if(verbose)
+			fprintf(stdout, "Fi!\n");
 	closeFiles();
 	return 0;
 }

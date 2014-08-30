@@ -27,3 +27,5 @@
 log.txt
 
 lua*
+
+*.fgs

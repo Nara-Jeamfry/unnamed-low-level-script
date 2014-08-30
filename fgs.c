@@ -191,9 +191,79 @@ function *findFunctionByName(char * name, functions *list)
 
 void * runFunction(frame *actualFrame)
 {
-	/* blu bla bli */
+	char * op = actualFrame->func->start;
+	char offset = actualFrame->func->offset;
 	
+	stacke * aux1, * aux2, * auxres;
+	var * auxvar;
 	
+	while(op[actualFrame->pc] != 0)
+	{
+		switch(op[actualFrame->pc])
+		{
+			case BYT_GOTO:
+				actualFrame->pc = op[(actualFrame->pc)+1];
+				break;
+			case BYT_PUSHI:
+				aux1 = malloc(sizeof(stacke));
+				aux1->type = 0;
+				aux1->value.literalI = *(int *)&(op[(actualFrame->pc)+1]);
+				StackPush(actualFrame->datastack, aux1);
+				actualFrame->pc = (actualFrame->pc)+5;
+				break;
+			case BYT_PUSHF:
+				aux1 = malloc(sizeof(stacke));
+				aux1->type = 0;
+				aux1->value.literalF = *(float *)&(op[(actualFrame->pc)+1]);
+				StackPush(actualFrame->datastack, aux1);
+				actualFrame->pc = (actualFrame->pc)+5;
+				break;
+			case BYT_PUSHVAR:
+				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
+				aux1 = malloc(sizeof(stacke));
+				aux1->type = 0;
+				aux1->value.literalI = auxvar->value.literalI;
+				StackPush(actualFrame->datastack, aux1);
+				actualFrame->pc = (actualFrame->pc)+2;
+				break;
+			case BYT_ADDI:
+				aux1 = StackPop(actualFrame->datastack);
+				aux2 = StackPop(actualFrame->datastack);
+				aux1->value.literalI += aux2->value.literalI;
+				StackPush(actualFrame->datastack, aux1);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_SUBI:
+				aux1 = StackPop(actualFrame->datastack);
+				aux2 = StackPop(actualFrame->datastack);
+				aux2->value.literalI -= aux1->value.literalI;
+				StackPush(actualFrame->datastack, aux2);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_LTI:
+				aux1 = StackPop(actualFrame->datastack);
+				aux2 = StackPop(actualFrame->datastack);
+				if(aux2->value.literalI < aux1->value.literalI)
+				{
+					actualFrame->pc = (actualFrame->pc)+1;
+				}
+				else
+				{
+					actualFrame->pc = (actualFrame->pc)+3;
+				}
+				break;
+			case BYT_POPVAR:
+				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
+				aux1 = StackPop(actualFrame->datastack);
+				auxvar->value.literalI = aux1->value.literalI;
+				actualFrame->pc = (actualFrame->pc)+2;
+				break;
+			default:
+				actualFrame->pc = (actualFrame->pc)+1;
+		}
+	}
+	
+	return NULL;
 }
 
 void * debugFunction(frame *actualFrame)

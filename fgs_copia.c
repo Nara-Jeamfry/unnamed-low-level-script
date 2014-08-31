@@ -33,8 +33,11 @@ functions * read_file(unsigned char * fi)
 	for(i=0; i<function_count; i++)
 	{
 		if(verbose)
-		actual->name = readStringBytes(&offset, fi);
 			fprintf(stdout, "-- Funcio %d\n", i+1);
+		auxNumber = readStringBytes((char *)(fi+offset), &(actual->name));
+		if(verbose)
+			printf("%.2X: Name and lenght occupy %d bytes\n",offset, auxNumber); 
+		offset+=auxNumber;
 		type_count = fi[offset++];
 		if(verbose)
 			printf("%.2X: Function %s has %d types.\n", offset-1, actual->name, type_count);
@@ -47,9 +50,10 @@ functions * read_file(unsigned char * fi)
 			{
 				auxtype->next = types;
 			}
-			types->name = readStringBytes(&offset, fi);
+			auxNumber=readStringBytes((char *)(fi+offset), &(types->name));
 			if(verbose)
 					fprintf(stdout, "%.2X: Type %s\n", offset, types->name);
+			offset+=auxNumber;
 			auxtype = types;
 		}
 		
@@ -115,10 +119,13 @@ functions * read_file(unsigned char * fi)
 					offset+=3;
 					break;
 				case BYT_PUSHS:
+					offset+=readStringBytes((char *)(fi+offset), &(auxString))-1;
 					if(verbose)
-						fprintf(stdout, "%X: pushs \"%s\"\n", offset-3-line, readStringBytes(&offset, fi));
-					else
-						offset++;
+					{
+						fprintf(stdout, "%X: pushs \"%s\"\n", offset-3-line, auxString);
+					}
+					free(auxString);
+					auxString=NULL;
 					break;
 				case BYT_POPVAR:
 					if(verbose)
@@ -331,12 +338,9 @@ void * runFunction(frame *actualFrame)
 				
 				break;
 			case BYT_POPVAR:
-				print("--debugFunction-- Found popvar\n");
+				printd("--debugFunction-- Found popvar\n");
 				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
-				aux1 = malloc(sizeof(stacke));
-				StackPopI(actualFrame->datastack, aux1);
-				auxvar->value.literalI = aux1->value.literalI;
-				free(aux1);
+				popvar(actualFrame->datastack, auxvar);
 				actualFrame->pc = (actualFrame->pc)+2;
 				break;
 			default:
@@ -434,20 +438,30 @@ var *findVariable(var * variables, unsigned char id)
 	return NULL;
 }
 
-char *readStringBytes(int *offset, char * text)
+int readStringBytes(char * source, char **destination)
 {
-	char length = *(text+*offset);
+	int length = (*source);
 	
-	(*offset)++;
-	char *result = malloc(sizeof(char)*length + 1);
+	if(verbose) printf("--readStringBytes-- Allocating %d bytes...\n", length+1);
 	
-	memcpy(result, text+*offset, length);
+	*destination = malloc(sizeof(char)*length + 1);
 	
-	result[length]='\0';
+	if(!*destination)
+	{
+		printf("--readStringBytes-- Could not allocate %d bytes\n",length + 1); 
+	}
 	
-	(*offset)+=length;
+	if(!memcpy(*destination, source+1, length))
+	{
+		printf("--readStringBytes-- Failed while copying %d bytes\n", length+1);
+		exit(4);
+	}
 	
-	return result;
+	(*destination)[length]='\0';
+	
+	if(verbose) printf("--readStringBytes-- Offset is %d\n", length+1);
+	
+	return length+1;
 }
 
 unsigned char * parse_file(FILE * fi)

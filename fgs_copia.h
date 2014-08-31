@@ -66,7 +66,10 @@ void printStatus(frame *);
 
 void * runFunction(frame *);
 
-char *readStringBytes(int *, char *);
+/* Returns string length as to skip it from the code (counting THE BYTE FOR THE LENGTH too).
+
+   Keep in mind that this function allocates memory that should be deallocated afterwards. */
+int readStringBytes(char * source, char **destination);
 
 void print(char *);
 void printd(char *);

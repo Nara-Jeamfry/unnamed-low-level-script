@@ -1,4 +1,6 @@
 
+#include <string.h>
+
 typedef struct variablerl {
 	char type; /* 0 for int, 1 for float, 2 for string */
 	
@@ -37,7 +39,12 @@ char stackverbose;
 
 stack * StackInit(int);
 
-void StackPush(stack *, stacke *);
-stacke * StackPop(stack *);
+/* StackPushX and StackPopX return 0 if all works correctly, !0 otherwise. */
+int StackPushI(stack *, stacke *);
+int StackPushF(stack *, stacke *);
+int StackPushS(stack *, stacke *);
+int StackPopI(stack *, stacke *);
+int StackPopF(stack *, stacke *);
+int StackPopS(stack *, stacke *);
 char StackEmpty(stack *);
 char StackFull(stack *);

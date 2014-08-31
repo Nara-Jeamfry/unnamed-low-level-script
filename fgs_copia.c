@@ -244,83 +244,6 @@ void * runFunction(frame *actualFrame)
 	
 	while(op[actualFrame->pc] != 0)
 	{
-		switch(op[actualFrame->pc])
-		{
-			case BYT_GOTO:
-				actualFrame->pc = op[(actualFrame->pc)+1];
-				break;
-			case BYT_PUSHI:
-				aux1 = malloc(sizeof(stacke));
-				aux1->type = 0;
-				aux1->value.literalI = *(int *)&(op[(actualFrame->pc)+1]);
-				StackPush(actualFrame->datastack, aux1);
-				actualFrame->pc = (actualFrame->pc)+5;
-				break;
-			case BYT_PUSHF:
-				aux1 = malloc(sizeof(stacke));
-				aux1->type = 0;
-				aux1->value.literalF = *(float *)&(op[(actualFrame->pc)+1]);
-				StackPush(actualFrame->datastack, aux1);
-				actualFrame->pc = (actualFrame->pc)+5;
-				break;
-			case BYT_PUSHVAR:
-				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
-				aux1 = malloc(sizeof(stacke));
-				aux1->type = 0;
-				aux1->value.literalI = auxvar->value.literalI;
-				StackPush(actualFrame->datastack, aux1);
-				actualFrame->pc = (actualFrame->pc)+2;
-				break;
-			case BYT_ADDI:
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				aux1->value.literalI += aux2->value.literalI;
-				StackPush(actualFrame->datastack, aux1);
-				actualFrame->pc = (actualFrame->pc)+1;
-				break;
-			case BYT_SUBI:
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				aux2->value.literalI -= aux1->value.literalI;
-				StackPush(actualFrame->datastack, aux2);
-				actualFrame->pc = (actualFrame->pc)+1;
-				break;
-			case BYT_LTI:
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				if(aux2->value.literalI < aux1->value.literalI)
-				{
-					actualFrame->pc = (actualFrame->pc)+1;
-				}
-				else
-				{
-					actualFrame->pc = (actualFrame->pc)+3;
-				}
-				break;
-			case BYT_POPVAR:
-				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
-				aux1 = StackPop(actualFrame->datastack);
-				auxvar->value.literalI = aux1->value.literalI;
-				actualFrame->pc = (actualFrame->pc)+2;
-				break;
-			default:
-				actualFrame->pc = (actualFrame->pc)+1;
-		}
-	}
-	
-	return NULL;
-}
-
-void * debugFunction(frame *actualFrame)
-{
-	char * op = actualFrame->func->start;
-	char offset = actualFrame->func->offset;
-	
-	stacke * aux1, * aux2, * auxres;
-	var * auxvar;
-	
-	while(op[actualFrame->pc] != 0)
-	{
 		if(verbose)
 			fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
 		switch(op[actualFrame->pc])
@@ -334,7 +257,7 @@ void * debugFunction(frame *actualFrame)
 				aux1 = malloc(sizeof(stacke));
 				aux1->type = 0;
 				aux1->value.literalI = *(int *)&(op[(actualFrame->pc)+1]);
-				StackPush(actualFrame->datastack, aux1);
+				StackPushI(actualFrame->datastack, aux1);
 				actualFrame->pc = (actualFrame->pc)+5;
 				break;
 			case BYT_PUSHF:
@@ -342,7 +265,7 @@ void * debugFunction(frame *actualFrame)
 				aux1 = malloc(sizeof(stacke));
 				aux1->type = 0;
 				aux1->value.literalF = *(float *)&(op[(actualFrame->pc)+1]);
-				StackPush(actualFrame->datastack, aux1);
+				StackPushF(actualFrame->datastack, aux1);
 				actualFrame->pc = (actualFrame->pc)+5;
 				break;
 			case BYT_PUSHVAR:
@@ -351,47 +274,63 @@ void * debugFunction(frame *actualFrame)
 				aux1 = malloc(sizeof(stacke));
 				aux1->type = 0;
 				aux1->value.literalI = auxvar->value.literalI;
-				StackPush(actualFrame->datastack, aux1);
+				StackPushI(actualFrame->datastack, aux1);
+				free(aux1);
 				actualFrame->pc = (actualFrame->pc)+2;
 				break;
 			case BYT_ADDI:
 				print("--debugFunction-- Found addi\n");
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				aux1->value.literalI += aux2->value.literalI;
-				StackPush(actualFrame->datastack, aux1);
+				addi(actualFrame->datastack);
 				actualFrame->pc = (actualFrame->pc)+1;
 				break;
 			case BYT_SUBI:
 				print("--debugFunction-- Found subi\n");
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				aux2->value.literalI -= aux1->value.literalI;
-				StackPush(actualFrame->datastack, aux2);
+				subi(actualFrame->datastack);
 				actualFrame->pc = (actualFrame->pc)+1;
 				break;
 			case BYT_LTI:
 				print("--debugFunction-- Found lti\n");
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				if(verbose)
-					fprintf(stdout, "--debugFunction-- Comparing %d and %d.\n", aux2->value.literalI, aux1->value.literalI);
-				if(aux2->value.literalI < aux1->value.literalI)
-				{
-					print("--debugFunction-- It is less!\n");
-					actualFrame->pc = (actualFrame->pc)+1;
-				}
-				else
-				{
-					print("--debugFunction-- It is NOT less!\n");
-					actualFrame->pc = (actualFrame->pc)+3;
-				}
+				
+				actualFrame->pc = (actualFrame->pc)+lti(actualFrame->datastack);
+				
+				break;
+			case BYT_LEI:
+				print("--debugFunction-- Found lei\n");
+				
+				actualFrame->pc = (actualFrame->pc)+lei(actualFrame->datastack);
+				
+				break;
+			case BYT_GTI:
+				print("--debugFunction-- Found gti\n");
+				
+				actualFrame->pc = (actualFrame->pc)+gti(actualFrame->datastack);
+				
+				break;
+			case BYT_GEI:
+				print("--debugFunction-- Found gei\n");
+				
+				actualFrame->pc = (actualFrame->pc)+gei(actualFrame->datastack);
+				
+				break;
+			case BYT_EQ:
+				print("--debugFunction-- Found eq\n");
+				
+				actualFrame->pc = (actualFrame->pc)+eq(actualFrame->datastack);
+				
+				break;
+			case BYT_NEQ:
+				print("--debugFunction-- Found neq\n");
+				
+				actualFrame->pc = (actualFrame->pc)+neq(actualFrame->datastack);
+				
 				break;
 			case BYT_POPVAR:
 				print("--debugFunction-- Found popvar\n");
 				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
-				aux1 = StackPop(actualFrame->datastack);
+				aux1 = malloc(sizeof(stacke));
+				StackPopI(actualFrame->datastack, aux1);
 				auxvar->value.literalI = aux1->value.literalI;
+				free(aux1);
 				actualFrame->pc = (actualFrame->pc)+2;
 				break;
 			default:
@@ -583,7 +522,7 @@ int main(int argc, char **argv)
 	if(verbose)
 		fprintf(stdout, "Benvingut a l'intèrpret de FastGameScript!\n\n");
 	
-	char * name = "example_fibonacci_complexe.fgs";
+	char * name = "example_fibonacci_complexe.fgs", * byteCode;
 	int i;
 	char c;
 	
@@ -603,7 +542,7 @@ int main(int argc, char **argv)
 				stackverbose = 1;
 				break;
 			case '?':
-				printf("Unknown option %c.", optopt);
+				printf("Unknown option %c.", c);
 				exit(3);
 				break;
 			default: 
@@ -622,7 +561,7 @@ int main(int argc, char **argv)
 	frame * basicFrame;
 	var * input;
 	
-	for(i=0; i<100000; i++)
+	for(i=0; i<100; i++)
 	{
 		print("--------------\n");
 		openFile(name);
@@ -636,7 +575,8 @@ int main(int argc, char **argv)
 		}
 		
 		print("Reading file...\n");
-		globalFunctions = read_file(parse_file(file));
+		byteCode = parse_file(file);
+		globalFunctions = read_file(byteCode);
 		
 		fclose(file);
 		
@@ -665,7 +605,9 @@ int main(int argc, char **argv)
 			exit(4);
 		}
 		print("--------------\n");
+		free(byteCode);
 	}
 	
 	fprintf(stdout, "Well that worked fine!\n");
+	return 0;
 }

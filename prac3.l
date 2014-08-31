@@ -160,7 +160,7 @@ not			{
 
 
 [a-zA-Z][a-zA-Z_0-9]*	{
-				yylval.variable.identifier = (char *) malloc(100);
+				yylval.variable.identifier = (char *) malloc(strlen(yytext)+1);
 				strcpy(yylval.variable.identifier, yytext);
 				return ID;
 			}

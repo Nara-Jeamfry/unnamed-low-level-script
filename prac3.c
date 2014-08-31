@@ -49,8 +49,39 @@ int nextQuad()
 	return codeOffset;
 }
 
-void cleanMemory()
+void cleanOp(bytecode_entry * byt)
 {
+	free(byt->val1);
+	free(byt->val2);
+	free(byt->val3);
+	free(byt);
+}
+
+void cleanFunctions()
+{
+	function_entry * aux;
+	printf("HOLAAAAAA?¿???? %d\n", firstFunction);
+	while(firstFunction)
+	{
+		printf("Cleaning function %s", firstFunction->identifier);
+		bytecode_entry * auxbytec;
+		while(firstFunction->first_code)
+		{
+			printf("Cleaning op %d", firstFunction->first_code->op);
+			auxbytec = firstFunction->first_code->next;
+			cleanOp(firstFunction->first_code);
+			firstFunction->first_code = auxbytec;
+		}
+		aux = firstFunction->next;
+		free(firstFunction);
+		firstFunction = aux;
+	}
+}
+
+void cleanMemory()
+{	
+	/*	cleanFunctions(); */
+
 	codeStart = NULL;
 	codeEnd = NULL;
 
@@ -67,6 +98,7 @@ void cleanMemory()
 	localOffset = 1;
 	typeOffset = 0;
 	functionCount = 0;
+
 }
 
 C3A_value *tempLocation()
@@ -114,7 +146,7 @@ C3A_value *varLocation(char * identifier)
 	C3A_value *aux = malloc(sizeof(C3A_value));
 	aux->value.varName = identifier;
 	aux->type = 1;
-	
+		
 	C3A_value_container *existing_var = checkNewVar(aux, firstLocal);
 	
 	if(!existing_var)
@@ -385,7 +417,7 @@ void saveFunction(char * identifier)
 		lastFunction = new;
 	}
 }
-
+	
 FILE *getCodeFile()
 {
 	if(codeFile == 0)
@@ -445,14 +477,17 @@ void openCodeFile()
 
 void closeFiles()
 {
+	if(codeFile != NULL)
 	if(fclose(codeFile)==EOF)
 	{
 		printf("Strange error ocurred while closing Code File.\n");
 	}
+	if(debugFile != NULL)
 	if(fclose(debugFile)==EOF)
 	{
 		printf("Strange error ocurred while closing Debug File.\n");
 	}
+	if(byteCodeFile != NULL)
 	if(fclose(byteCodeFile)==EOF)
 	{
 		printf("Strange error ocurred while closing ByteCode File.\n");
@@ -484,7 +519,11 @@ void writeByteFloat(FILE * fi, float f)
 
 void writeStringBytes(FILE * fi, char * text)
 {
+	if(text == NULL)
+		return;
+
 	char length = strlen(text);
+	
 	char i = 0;
 	writeByte(fi, length);
 	while(i<length)
@@ -854,6 +893,7 @@ void printCode(FILE * fi)
 	bytecode_entry *line = NULL;
 	function_entry *section = firstFunction;
 	C3A_value_container *var = NULL;
+	char * auxtext;
 	
 	int lineNumber = 0, res;
 	
@@ -912,8 +952,14 @@ void printCode(FILE * fi)
 		
 		while(line)
 		{
-			res = fprintf(fi, "%s\n", printOp(line, &lineNumber));
+			auxtext = malloc(sizeof(char)*100);
+
+			printOp(line, &lineNumber, auxtext);
+
+			res = fprintf(fi, "%s\n", auxtext);
 			
+			free(auxtext);
+	
 			if(res <0)
 			{
 				perror("An error ocurred:");
@@ -930,16 +976,14 @@ void printCode(FILE * fi)
 	}
 }
 
-char *printOp(bytecode_entry *op, int *lineNumber)
+char *printOp(bytecode_entry *op, int *lineNumber, char * result)
 {
 	char * aux;
-	char * result;
 	int auxlines = 0;
 	
 	switch(op->op)
 	{
 		case IF_OP:
-			result = malloc(sizeof(char)*(14 + 100)+4);
 			sprintf(result, "-%X: %s\n-%X: %s\n-%X: %s \n-%X: %s \n-%X: %s\n-%X: GOTO\n-%X: #%X", (*lineNumber),
 											"push",
 											(*lineNumber)+1,
@@ -957,7 +1001,6 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 			return result;
 		break;
 		case GOTO:
-			result = malloc(sizeof(char)*(5+11)+4);
 			sprintf(result, "-%X: GOTO\n-%X: #%X", (*lineNumber), 
 											(*lineNumber)+1,
 											op->gotoL+headerLength+opsLength);
@@ -965,7 +1008,6 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 			return result;
 		break;
 		case ASSIGNMENT:
-			result = malloc(sizeof(char)*100+4);
 			sprintf(result, "%X: %s := %s", (*lineNumber), 
 											printC3AVal(op->val1, &auxlines), 
 											printC3AVal(op->val2, &auxlines));
@@ -973,7 +1015,6 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 			return result;
 		break;
 		case ASSIGNMENT_OP:
-			result = malloc(sizeof(char)*100+4);
 			sprintf(result, "%X: %s := %s %s %s", (*lineNumber), 
 											printC3AVal(op->val1, &auxlines), 
 											printC3AVal(op->val2, &auxlines),
@@ -983,7 +1024,6 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 			return result;
 		break;
 		case ASSIGNMENT_UN:
-			result = malloc(sizeof(char)*100+4);
 			sprintf(result, "%X: %s := %s %s", (*lineNumber), printC3AVal(op->val1, &auxlines),
 											printRelOp(op->oprel),
 											printC3AVal(op->val2, &auxlines));
@@ -992,14 +1032,12 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 		break;
 		case PARAM:
 			aux = printC3AVal(op->val1, &auxlines);
-			result = malloc(sizeof(char)*7+sizeof(aux)+4);
 			sprintf(result, "%X: PARAM %s", (*lineNumber), 
 											aux);
 			(*lineNumber)+=1 + auxlines;
 			return result;
 		break;
 		case CALL:
-			result = malloc(sizeof(char)*10+11+4);
 			sprintf(result, "%X: CALL\n%X: @%d", (*lineNumber), 
 											(*lineNumber)+1, 
 											op->gotoL);
@@ -1007,7 +1045,6 @@ char *printOp(bytecode_entry *op, int *lineNumber)
 			return result;
 		break;
 		case HALT:
-			result = malloc(sizeof(char)*14);
 			sprintf(result, "-%X: HALT", (*lineNumber));
 			(*lineNumber)+=HALT_OFFSET;
 			return result;
@@ -1054,6 +1091,10 @@ char *printC3AVal(C3A_value *value, int *lineNumber)
 		case 4:
 			aux = malloc(sizeof(char) * strlen(value->value.literalS)+4);
 			sprintf(aux, "\"%s\"", value->value.literalS);
+			if(value->value.literalS == NULL)
+			{
+				return;
+			}
 			(*lineNumber)+=strlen(value->value.literalS)+1;
 			return aux;
 		break;

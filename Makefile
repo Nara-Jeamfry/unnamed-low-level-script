@@ -13,7 +13,7 @@ SRCY = prac3y.tmp.c
 SRCH = prac3.h
 SRCSYM = symtab.c
 YHEADER = prac3y.h
-LIBS = fgs_stack.c
+LIBS = fgs_stack.c fgs_interpreter_ops.c
 
 INTC = fgs.c
 INTH = fgs.h
@@ -43,12 +43,18 @@ all : compile
 testfgs : compile compile_copia
 	./$(INTBIN)
 
+testfgscopia : compile_copia
+	./$(INTBINCOPY)
+
 compile : $(SRCL) $(SRCY)
 	$(CC) -o $(INTBIN) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTC) $(LIBS)
 	
 compile_copia : $(SRCL) $(SRCY)
 	$(CC) -o $(INTBINCOPY) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTCCOPY) $(LIBS)
 	
+valgrind : compile_copia
+	valgrind --tool=memcheck --leak-check=yes ./$(INTBINCOPY)
+
 $(SRCL) : $(IN_LEX)
 	$(LEX) $(LFLAGS) $<
 

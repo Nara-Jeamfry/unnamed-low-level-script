@@ -81,6 +81,9 @@ params : OPEN_PARENTH CLOSE_PARENTH {
 		/* op = LOAD;
 		aux = gen_code_op(op); */
 	}
+	| OPEN_PARENTH error {
+		yyerror("Expected closing parenthesis not found.");
+	}
 
 separator
 	: {
@@ -1020,6 +1023,5 @@ int parseFile(FILE * file, char * output_name)
 
 void yyerror (const char *s) {
 	errors_found = 1;
-	fprintf(stdout, "Error found on line %d: ", yylineno);
-	fprintf(stdout, "%s\n", s);
+	fprintf(stdout, "Error found on line %d: %s\n", yylineno, s);
 }

@@ -16,7 +16,6 @@ char debug;
 void memError(char * funct)
 {
 	printf("--%s-- Cannot allocate memory. Exiting...\n", funct);
-	exit(3);
 }
 
 void pushi(stack * st, int value)
@@ -120,21 +119,98 @@ void popvar(stack * st, var * variable)
 	
 	free(aux);
 }
+
+void operate(stack * st, int type)
+{
+	stacke * aux1, * aux2;
+	
+	aux1 = malloc(sizeof(stacke));	
 	aux2 = malloc(sizeof(stacke));
 
 	if(aux1 == NULL || aux2 == NULL)
 	{
-		memError("addi");
+		memError("arithmetic operation");
 	}
-
+	
 	StackPopI(st, aux1);
 	StackPopI(st, aux2);
-	aux2->value.literalI -= aux1->value.literalI;
-
+	
+	switch(type)
+	{
+		case 0:
+			aux2->value.literalI += aux1->value.literalI;
+			break;
+		case 1:
+			aux2->value.literalI -= aux1->value.literalI;
+			break;
+		case 2:
+			aux2->value.literalI *= aux1->value.literalI;
+			break;
+		case 3:
+			aux2->value.literalI /= aux1->value.literalI;
+			break;
+		case 4:
+			aux2->value.literalF += aux1->value.literalF;
+			break;
+		case 5:
+			aux2->value.literalF -= aux1->value.literalF;
+			break;
+		case 6:
+			aux2->value.literalF *= aux1->value.literalF;
+			break;
+		case 7:
+			aux2->value.literalF /= aux1->value.literalF;
+			break;
+		case 8:
+			
+			aux2->value.literalI += aux1->value.literalI;
+			break;
+	}
+	
 	StackPushI(st, aux2);
 
 	free(aux1);
 	free(aux2);
+}
+
+void addi(stack * st)
+{
+	operate(st, 0);
+}
+
+void subi(stack * st)
+{
+	operate(st, 1);
+}
+
+void muli(stack * st)
+{
+	operate(st, 2);
+}
+
+void divi(stack * st)
+{
+	operate(st, 3);
+}
+
+void addf(stack * st)
+{
+	operate(st, 4);
+}
+
+void subf(stack * st)
+{
+	operate(st, 5);
+}
+
+void mulf(stack * st)
+{
+	operate(st, 6);
+}
+
+void divf(stack * st)
+{
+	operate(st, 7);
 }
 
 int lti(stack *st)

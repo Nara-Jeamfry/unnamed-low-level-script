@@ -4,6 +4,11 @@
 char verbose;
 #endif
 
+void pushi(stack *, int);
+void pushf(stack *, float);
+
+void pushvar(stack *, var *);
+
 void addi(stack *);
 void addf(stack *);
 void subi(stack *);

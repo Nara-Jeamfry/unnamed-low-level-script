@@ -7,61 +7,119 @@
 char verbose;
 #endif
 
+#ifndef DEBUGVERBOSE
+#define DEBUGVERBOSE
+char debug;
+#endif
+
+
 void memError(char * funct)
 {
 	printf("--%s-- Cannot allocate memory. Exiting...\n", funct);
 	exit(3);
 }
 
-void addi(stack * st)
+void pushi(stack * st, int value)
 {
-	stacke * aux1, * aux2;
-
-	aux1 = malloc(sizeof(stacke));	
-	aux2 = malloc(sizeof(stacke));
-
-	if(aux1 == NULL || aux2 == NULL)
+	stacke * aux1 = malloc(sizeof(stacke));
+	
+	if(!aux1)
 	{
-		memError("addi");
+		memError("pushi");
 	}
-
-	StackPopI(st, aux1);
-	StackPopI(st, aux2);
-	aux1->value.literalI += aux2->value.literalI;
-
+		
+	aux1->type = 0;
+	aux1->value.literalI = value;
 	StackPushI(st, aux1);
-
 	free(aux1);
-	free(aux2);
 }
 
-void addf(stack * st)
+void pushf(stack * st, float value)
 {
-	stacke * aux1, * aux2;
-
-	aux1 = malloc(sizeof(stacke));
-	aux2 = malloc(sizeof(stacke));
-
-	if(aux1 == NULL || aux2 == NULL)
+	stacke * aux1 = malloc(sizeof(stacke));
+	
+	if(!aux1)
 	{
-		memError("addi");
+		memError("pushf");
 	}
-
-	StackPopF(st, aux1);
-	StackPopF(st, aux2);
-	aux1->value.literalF += aux2->value.literalF;
-
+	
+	aux1->type = 1;
+	aux1->value.literalF = value;
 	StackPushF(st, aux1);
-
 	free(aux1);
-	free(aux2);
 }
 
-void subi(stack * st)
+void pushs(stack * st, char * value)
 {
-	stacke * aux1, * aux2, * auxres;
+	stacke * aux1 = malloc(sizeof(stacke));
+	
+	if(!aux1)
+	{
+		memError("pushs");
+	}
+	
+	aux1->type = 2;
+	aux1->value.literalS = value;
+	StackPushS(st, aux1);
+	free(aux1);
+}
 
-	aux1 = malloc(sizeof(stacke));
+void pushvar(stack * st, var * variable)
+{
+	if(variable->type == 0)
+	{
+		pushi(st, variable->value.literalI);
+	}
+	else if(variable->type == 1)
+	{
+		pushf(st, variable->value.literalF);
+	}
+	else if(variable->type == 2)
+	{
+		pushs(st, variable->value.literalS);
+	}
+	else
+	{
+		printf("Unknown variable type, cannot push.\n");
+		exit(4);
+	}
+}
+
+void popvar(stack * st, var * variable)
+{
+	stacke * aux = malloc(sizeof(stacke));
+	int stack_type = StackType(st);
+	
+	if(stack_type == 0)
+	{
+		StackPopI(st, aux);
+		
+		variable->type = 0;
+		variable->value.literalI = aux->value.literalI;
+	}
+	else if(stack_type == 1)
+	{
+		StackPopF(st, aux);
+		
+		variable->type = 1;
+		variable->value.literalI = aux->value.literalI;
+	}
+	else if(stack_type == 2)
+	{
+		StackPopS(st, aux);
+		
+		variable->type = 2;
+		variable->value.literalI = aux->value.literalI;
+	}
+	else
+	{
+		printf("Unknown variable type, cannot push.\n");
+		free(aux);
+		exit(4);
+	}
+	
+	free(aux);
+}
 	aux2 = malloc(sizeof(stacke));
 
 	if(aux1 == NULL || aux2 == NULL)
@@ -128,11 +186,13 @@ int comp_generic(stack * st, int type)
 		memError("addi");
 	}
 
-	if(verbose)
+	if(debug)
 		fprintf(stdout, "--debugFunction-- Comparing %d and %d.\n", aux2->value.literalI, aux1->value.literalI);
 
+	
 	StackPopI(st, aux1);
 	StackPopI(st, aux2);
+	
 	if(aux2->type == aux1->type)
 	{
 		if(aux2->type == 0)
@@ -221,13 +281,13 @@ int comp_generic(stack * st, int type)
 		}
 		else if(aux2->type == 2)
 		{
-			printf("UNIMPLEMENTED");
+			printf("UNIMPLEMENTED comparer for strings\n");
 			exit(6);
 		}
 	}
 	else
 	{
-		printf("UNIMPLEMENTED");
+		printf("UNIMPLEMENTED types differ\n");
 		exit(6);
 	}
 

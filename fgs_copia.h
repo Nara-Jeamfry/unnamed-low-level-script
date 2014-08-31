@@ -21,7 +21,7 @@ typedef struct function_container {
 	
 	type *types;
 	
-	char * start;
+	unsigned char * start;
 	unsigned char offset;
 
 } function;
@@ -29,13 +29,13 @@ typedef struct function_container {
 typedef struct framerl {
 	var * variables;
 	
-	char pc;
+	unsigned char pc;
 	
 	function * func;
 	
 	stack * datastack;
 	
-	char * ops;
+	unsigned char * ops;
 } frame;
 
 typedef struct function_list {
@@ -46,6 +46,11 @@ typedef struct function_list {
 #ifndef VERBOSE
 #define VERBOSE
 char verbose;
+#endif
+
+#ifndef DEBUGVERBOSE
+#define DEBUGVERBOSE
+char debug;
 #endif
 
 functions * globalFunctions;
@@ -64,7 +69,8 @@ void * runFunction(frame *);
 char *readStringBytes(int *, char *);
 
 void print(char *);
+void printd(char *);
 
-functions * read_file(char *);
-char * parse_file(FILE *);
+functions * read_file(unsigned char *);
+unsigned char * parse_file(FILE *);
 void call_function();

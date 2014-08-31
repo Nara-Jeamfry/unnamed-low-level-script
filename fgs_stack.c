@@ -47,9 +47,13 @@ int StackPushI(stack * st, stacke * elem)
 	stacke * element;
 	if(!StackFull(st))
 	{
-		if(stackverbose)
-			fprintf(stdout, "--StackPushI-- Correctly pushed value %d.\n", elem->value.literalI);
 		element = st->contents;
+		
+		if(elem->type != 0)
+		{
+			printf("UNIMPLEMENTED (Push of incorrect type).\n");
+			exit(6);
+		}
 		st->contents = malloc(sizeof(stacke));
 
 		if(st->contents == NULL)
@@ -62,7 +66,14 @@ int StackPushI(stack * st, stacke * elem)
 		st->contents->type=0;
 		st->contents->last = element;
 		st->top++;
+		
+		if(stackverbose)
+			fprintf(stdout, "--StackPushI-- Correctly pushed value %d.\n", elem->value.literalI);
+		
+		return 1;
 	}
+	printf("--StackPushI-- Stack is full.\n");
+	return 0;
 }
 
 int StackPushF(stack * st, stacke * elem)
@@ -73,6 +84,12 @@ int StackPushF(stack * st, stacke * elem)
 		if(stackverbose)
 			fprintf(stdout, "--StackPushF-- Correctly pushed value %d.\n", elem->value.literalI);
 		element = st->contents;
+		
+		if(elem->type != 1)
+		{
+			printf("UNIMPLEMENTED (Push of incorrect type).\n");
+			exit(6);
+		}
 		st->contents = malloc(sizeof(stacke));
 
 		if(st->contents == NULL)
@@ -95,6 +112,13 @@ int StackPushS(stack * st, stacke * elem)
 		if(stackverbose)
 			fprintf(stdout, "--StackPushS-- Correctly pushed value %d.\n", elem->value.literalI);
 		element = st->contents;
+		
+		if(elem->type != 2)
+		{
+			printf("UNIMPLEMENTED (Push of incorrect type).\n");
+			exit(6);
+		}
+		
 		st->contents = malloc(sizeof(stacke));
 		if(st->contents == NULL)
 		{
@@ -122,17 +146,22 @@ int StackPopI(stack * st, stacke * data)
 		}
 		else if(element->type == 2)
 		{
-			if(stackverbose)	printf("--StackPopI-- Cannot convert from string\n");
+			printf("--StackPopI-- Cannot convert from string\n");
 			free(element->value.literalS);
 			free(element);
 			return 0;
+		}
+		else if(element->type != 0)
+		{
+			printf("--StackPopI-- Unknown type received.\n");
+			exit(4);
 		}
 		st->contents = element->last;
 		st->top--;
 
 		if(memcpy(data, element, sizeof(stacke))==NULL)
 		{
-			if(stackverbose)	printf("--StackPopI-- Cannot pop value: Error copying memory.\n");
+			printf("--StackPopI-- Cannot pop value: Error copying memory.\n");
 			free(element);
 			return 0;		
 		}
@@ -142,7 +171,7 @@ int StackPopI(stack * st, stacke * data)
 			fprintf(stdout, "--StackPopI-- Correctly poped value %d.\n", data->value.literalI);
 		return 1;
 	}
-	if(stackverbose) printf("--StackPopI-- Cannot pop value: Stack is empty.\n");
+	printf("--StackPopI-- Cannot pop value: Stack is empty.\n");
 	return 0;
 }
 
@@ -164,6 +193,11 @@ int StackPopF(stack * st, stacke * data)
 			free(element->value.literalS);
 			free(element);
 			return 0;
+		}
+		else if(element->type != 1)
+		{
+			printf("--StackPopI-- Unknown type received.\n");
+			exit(4);
 		}
 		st->contents = element->last;
 		st->top--;
@@ -213,10 +247,15 @@ int StackPopS(stack * st, stacke * data)
 			sprintf(element->value.literalS, "%f", aux);
 			element->type = 2;
 		}	
+		else if(element->type != 2)
+		{
+			printf("--StackPopI-- Unknown type received.\n");
+			exit(4);
+		}
 		st->contents = element->last;
 		st->top--;
 
-		if(memcpy(data, element, sizeof(stacke))==NULL)
+		if(!memcpy(data, element, sizeof(stacke)))
 		{
 			if(stackverbose)	printf("--StackPopS-- Cannot pop value: Error copying memory.");
 			free(element->value.literalS);
@@ -232,4 +271,9 @@ int StackPopS(stack * st, stacke * data)
 	}
 	if(stackverbose) printf("--StackPopS-- Cannot pop value: Stack is empty.\n");
 	return 0;
+}
+
+int StackType(stack * st)
+{
+	return st->contents->type;
 }

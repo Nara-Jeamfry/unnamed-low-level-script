@@ -43,6 +43,16 @@ typedef struct function_list {
 	struct function_list *next;
 } functions;
 
+#ifndef VERBOSE
+#define VERBOSE
+char verbose;
+#endif
+
+#ifndef DEBUGVERBOSE
+#define DEBUGVERBOSE
+char debug;
+#endif
+
 functions * globalFunctions;
 
 function *findFunction(char, functions *);
@@ -56,10 +66,16 @@ void printStatus(frame *);
 
 void * runFunction(frame *);
 
-char *readStringBytes(int *, char *);
+/* Returns string length as to skip it from the code (counting THE BYTE FOR THE LENGTH too).
+
+   Keep in mind that this function allocates memory that should be deallocated afterwards. */
+int readStringBytes(char * source, char **destination);
 
 void print(char *);
+void printd(char *);
 
-functions * read_file(char *);
-char * parse_file(FILE *);
+void addExtensionIfNeeded(char *);
+FILE * open_file(char *);
+functions * read_file(unsigned char *);
+unsigned char * parse_file(FILE *);
 void call_function();

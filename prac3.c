@@ -313,10 +313,66 @@ bytecode_entry *gen_code_op(INST_SET op)
 	return newQuad;
 }
 
-/* bytecode_entry *gen_code_op(INST_SET op, C3A_value * var1, C3A_value * var2)
+void copyValue(C3A_value * source, C3A_value * dest)
 {
+	if(source == NULL || dest == NULL)
+	{
+		printf("Cannot copy variable value.");
+		dest = NULL;
+		exit(5);
+	}
+	dest->type = source->type;
 	
-} */
+
+	switch(dest->type)
+	{
+		case 0:
+			dest->value.tempID = source->value.tempID;
+			break;
+		case 1:
+			dest->value.varName = malloc(strlen(source->value.varName));
+			if(dest->value.varName == NULL)
+			{
+				exit(5);
+			}
+			strcpy(source->value.varName, dest->value.varName);
+			break;
+		case 2:
+			dest->value.literalI = source->value.literalI;
+			break;
+		case 3:
+			dest->value.literalF = source->value.literalF;
+			break;
+		case 4:
+			dest->value.literalS = malloc(strlen(source->value.literalS));
+			if(dest->value.literalS == NULL)
+			{
+				exit(5);
+			}
+			strcpy(source->value.literalS, dest->value.literalS);
+			break;
+		case 5:
+			dest->value.type = malloc(strlen(source->value.type));
+			if(dest->value.type == NULL)
+			{
+				exit(5);
+			}
+			strcpy(source->value.type, dest->value.type);
+			break;
+			
+	}
+	
+	dest->container = source->container;
+}
+
+C3A_value * duplicate_entry(C3A_value * var)
+{
+	C3A_value * result = malloc(sizeof(C3A_value));
+	
+	copyValue(var, result);
+	
+	return result;
+}
 
 void backpatch(BP_list* list, int gotoL)
 {

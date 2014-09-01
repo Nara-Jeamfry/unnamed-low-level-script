@@ -33,21 +33,6 @@
 
 
 
-typedef struct C3A_val {
-	int type; /* 0 temp value, 1 var on symtab, 2 intlit, 3 floatlit, 4 stringlit, 5 type */
-	
-	union C3A_values {
-		int tempID;
-		char *varName;
-		int literalI;
-		float literalF;
-		char *literalS;
-		char *type;
-	} value;
-	
-	struct C3A_container *container;
-} C3A_value;
-
 typedef enum {
 	IF_OP,
 	GOTO,
@@ -88,6 +73,21 @@ typedef enum {
 	PUTI,
 	PUTF
 } REL_INST_SET;
+
+typedef struct C3A_val {
+	int type; /* 0 temp value, 1 var on symtab, 2 intlit, 3 floatlit, 4 stringlit, 5 type */
+	
+	union C3A_values {
+		int tempID;
+		char *varName;
+		int literalI;
+		float literalF;
+		char *literalS;
+		char *type;
+	} value;
+	
+	struct C3A_container *container;
+} C3A_value;
 
 typedef struct bytecode {
 	INST_SET op;
@@ -207,6 +207,9 @@ void addType(char *);
 
 bytecode_entry *gen_code();
 bytecode_entry *gen_code_op(INST_SET);
+
+C3A_value * duplicate_entry(C3A_value *);
+
 void backpatch(BP_list*, int);
 BP_list* mergeLists(BP_list*, BP_list*);
 BP_list* addToList(BP_list*, bytecode_entry*);

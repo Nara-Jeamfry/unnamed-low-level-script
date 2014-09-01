@@ -1,35 +1,68 @@
+/*
+	Fast Game Scripting
+	fgs.c
+	Purpose: implements the main FastGameScript API.
+	
+	@author Marc López Baz
+	@version 0.5 01/09/2014
+*/ 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "fgs.h"
+#include <unistd.h>
+#include "fgs_copia.h"
 #include "prac3.h"
 
-functions * read_file(char * fi)
+/** Reads data from a FGS-ByteCode file.
+	read_file
+	
+	This method receives an unsigned char array and reads interesting
+	FastGameScript information from it. The unsigned char array MUST be
+	a FastGameScript-ByteCode file compiled by FGS-compiler, otherwise,
+	the function will return NULL. If the file header is the same that
+	the one from FGS-ByteCode files, undefined behavior is caused.
+	
+	\param fi The byte array containing a FGS-ByteCode file contents.
+	
+	\return A functions * data struct containing the existing functions 
+		and information about it.
+*/
+functions * read_file(unsigned char * fi)
 {
 	char header[13] = { 'g', 'a', 'm', 'e', '_', 's', 'c', 'r', 'i', 'p', 't', 3, 0 };
 	if(memcmp(fi,header, 13))
 	{	
-		fprintf(stdout, "Hey! L'arxiu no és correcte! :(\n");
+		print("Hey! L'arxiu no és correcte! :(\n");
 		return NULL;
 	}
 	
-	int offset = 13, i, j;
+	print("00: Found game_script at header\n");
+	
+	int offset = 13, i, j, auxNumber;
 	int function_count, type_count, var_count;
-	char op;
+	unsigned char op;
 	function *actual = malloc(sizeof(function));
 	function *aux;
 	functions * last_function;
 	functions * result = last_function = malloc(sizeof(functions));
 	type * types = NULL, *auxtype = NULL;
+	char * auxString;
 	
 	function_count = fi[offset++];
-	fprintf(stdout, "N. de funcions: %d\n", function_count);
+	if(verbose)
+		fprintf(stdout, "%.2X: N. de funcions: %d\n", offset-1, function_count);
 	
 	for(i=0; i<function_count; i++)
 	{
-		fprintf(stdout, "Funcio %d\n", i+1);
-		actual->name = readStringBytes(&offset, fi);
+		if(verbose)
+			fprintf(stdout, "-- Funcio %d\n", i+1);
+		auxNumber = readStringBytes((char *)(fi+offset), &(actual->name));
+		if(verbose)
+			printf("%.2X: Name and lenght occupy %d bytes\n",offset, auxNumber); 
+		offset+=auxNumber;
 		type_count = fi[offset++];
+		if(verbose)
+			printf("%.2X: Function %s has %d types.\n", offset-1, actual->name, type_count);
 		actual->type_count = type_count;
 		
 		for(j=0; j<type_count; j++)
@@ -39,8 +72,10 @@ functions * read_file(char * fi)
 			{
 				auxtype->next = types;
 			}
-			types->name = readStringBytes(&offset, fi);
-			fprintf(stdout, "Type %s\n", types->name);
+			auxNumber=readStringBytes((char *)(fi+offset), &(types->name));
+			if(verbose)
+					fprintf(stdout, "%.2X: Type %s\n", offset, types->name);
+			offset+=auxNumber;
 			auxtype = types;
 		}
 		
@@ -48,7 +83,8 @@ functions * read_file(char * fi)
 		types = NULL;
 		
 		actual->id = fi[offset++];
-		fprintf(stdout, "Funcio %d: %s\n", actual->id, actual->name);
+		if(verbose)
+			fprintf(stdout, "%.2X: Funcio %d: %s\n", offset-1, actual->id, actual->name);
 		
 		actual->var_count = 7;
 		
@@ -59,6 +95,9 @@ functions * read_file(char * fi)
 		actual = malloc(sizeof(function));
 	}
 	
+	free(last_function);
+	free(actual); 
+	
 	int line = 0;
 	
 	for(i=0; i<function_count; i++)
@@ -68,93 +107,135 @@ functions * read_file(char * fi)
 		actual = findFunction(op, result);
 		actual->start = fi+offset;
 		actual->offset = offset-2-line;
-		fprintf(stdout, "Code for function %s, starting at %X:\n\n", actual->name, (unsigned char)actual->offset);
+		if(verbose)
+			fprintf(stdout, "Code for function %s, starting at %X:\n\n", actual->name, (unsigned char)actual->offset);
 		while(op != 0)
 		{
 			op = fi[offset++];
 			switch(op)
 			{
 				case BYT_GOTO:
-					fprintf(stdout, "%X: goto %X\n", offset-3-line, fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: goto %X\n", offset-3-line, fi[offset++]);
+					else
+						offset++;
 					break;
 				case BYT_PUSHVAR:
-					fprintf(stdout, "%X: pushvar %d\n", offset-3-line, fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: pushvar %d\n", offset-3-line, fi[offset++]);
+					else
+						offset++;
 					break;
 				case BYT_PUSHI:
-					fprintf(stdout, "%X: pushi %d\n", offset-3-line, *(int *)&fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: pushi %d\n", offset-3-line, *(int *)&fi[offset++]);
+					else
+						offset++;
 					offset+=3;
 					break;
 				case BYT_PUSHF:
-					fprintf(stdout, "%X: pushf %f\n", offset-3-line, *(float *)&fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: pushf %f\n", offset-3-line, *(float *)&fi[offset++]);
+					else
+						offset++;
 					offset+=3;
 					break;
 				case BYT_PUSHS:
-					fprintf(stdout, "%X: pushs \"%s\"\n", offset-3-line, readStringBytes(&offset, fi));
+					offset+=readStringBytes((char *)(fi+offset), &(auxString))-1;
+					if(verbose)
+					{
+						fprintf(stdout, "%X: pushs \"%s\"\n", offset-3-line, auxString);
+					}
+					free(auxString);
+					auxString=NULL;
 					break;
 				case BYT_POPVAR:
-					fprintf(stdout, "%X: pop %d\n", offset-3-line, fi[offset++]);
+					if(verbose)
+						fprintf(stdout, "%X: pop %d\n", offset-3-line, fi[offset++]);
+					else
+						offset++;
 					break;
 				case BYT_I2S:
-					fprintf(stdout, "%X: i2s\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: i2s\n", offset-3-line);
 					break;
 				case BYT_ADDI:
-					fprintf(stdout, "%X: addi\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: addi\n", offset-3-line);
 					break;
 				case BYT_SUBI:
-					fprintf(stdout, "%X: subi\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: subi\n", offset-3-line);
 					break;
 				case BYT_MULI:
-					fprintf(stdout, "%X: muli\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: muli\n", offset-3-line);
 					break;
 				case BYT_DIVI:
-					fprintf(stdout, "%X: divi\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: divi\n", offset-3-line);
 					break;
 				case BYT_ADDF:
-					fprintf(stdout, "%X: addf\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: addf\n", offset-3-line);
 					break;
 				case BYT_SUBF:
-					fprintf(stdout, "%X: subf\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: subf\n", offset-3-line);
 					break;
 				case BYT_MULF:
-					fprintf(stdout, "%X: mulf\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: mulf\n", offset-3-line);
 					break;
 				case BYT_DIVF:
-					fprintf(stdout, "%X: divf\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: divf\n", offset-3-line);
 					break;
 				case BYT_ADDS:
-					fprintf(stdout, "%X: adds\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: adds\n", offset-3-line);
 					break;
 				case BYT_HALT:
-					fprintf(stdout, "%X: return\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: return\n", offset-3-line);
 					break;
 				case BYT_EQ:
-					fprintf(stdout, "%X: eq\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: eq\n", offset-3-line);
 					break;
 				case BYT_NEQ:
-					fprintf(stdout, "%X: neq\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: neq\n", offset-3-line);
 					break;
 				case BYT_LTI:
-					fprintf(stdout, "%X: lti\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: lti\n", offset-3-line);
 					break;
 				case BYT_LEI:
-					fprintf(stdout, "%X: lei\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: lei\n", offset-3-line);
 					break;
 				case BYT_GTI:
-					fprintf(stdout, "%X: gti\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: gti\n", offset-3-line);
 					break;
 				case BYT_GEI:
-					fprintf(stdout, "%X: gei\n", offset-3-line);
+					if(verbose)
+						fprintf(stdout, "%X: gei\n", offset-3-line);
 					break;
 				default:
-					fprintf(stdout, "%X: Unknown op %X\n", offset-2-line, op);
+					if(verbose)
+						fprintf(stdout, "%X: Unknown op %X\n", offset-2-line, op);
 			}
 		}
 		
-		fprintf(stdout, "Function %d ended at offset %X\n", i+1, offset-1);
+		if(verbose)
+			fprintf(stdout, "Function %d ended at offset %X\n", i+1, offset-1);
 		
 	}
 	
-	fprintf(stdout, "Hey! Estic interpretant l'arxiu! :)\n");
+	if(verbose)
+		fprintf(stdout, "Hey! Estic interpretant l'arxiu! :)\n");
 	
 	return result;
 	
@@ -192,7 +273,8 @@ function *findFunctionByName(char * name, functions *list)
 
 void * runFunction(frame *actualFrame)
 {
-	char * op = actualFrame->func->start;
+	unsigned char * op = actualFrame->func->start;
+	char * auxText;
 	char offset = actualFrame->func->offset;
 	
 	stacke * aux1, * aux2, * auxres;
@@ -200,169 +282,106 @@ void * runFunction(frame *actualFrame)
 	
 	while(op[actualFrame->pc] != 0)
 	{
+		if(debug)
+			fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
 		switch(op[actualFrame->pc])
 		{
 			case BYT_GOTO:
+				printd("--debugFunction-- Found goto\n");
 				actualFrame->pc = op[(actualFrame->pc)+1];
 				break;
 			case BYT_PUSHI:
-				aux1 = malloc(sizeof(stacke));
-				aux1->type = 0;
-				aux1->value.literalI = *(int *)&(op[(actualFrame->pc)+1]);
-				StackPush(actualFrame->datastack, aux1);
+				printd("--debugFunction-- Found pushi\n");
+				pushi(actualFrame->datastack, *(int *)&(op[(actualFrame->pc)+1]));
 				actualFrame->pc = (actualFrame->pc)+5;
 				break;
 			case BYT_PUSHF:
-				aux1 = malloc(sizeof(stacke));
-				aux1->type = 0;
-				aux1->value.literalF = *(float *)&(op[(actualFrame->pc)+1]);
-				StackPush(actualFrame->datastack, aux1);
+				printd("--debugFunction-- Found pushf\n");
+				pushf(actualFrame->datastack, *(float *)&(op[(actualFrame->pc)+1]));
 				actualFrame->pc = (actualFrame->pc)+5;
 				break;
+			case BYT_PUSHS:
+				printd("--debugFunction-- Found pushs\n");
+				actualFrame->pc+=readStringBytes((op+(actualFrame->pc)+1), &auxText);
+				pushs(actualFrame->datastack, auxText);
+				free(auxText);
+				auxText = NULL;
+				break;
 			case BYT_PUSHVAR:
+				printd("--debugFunction-- Found pushvar\n");
 				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
-				aux1 = malloc(sizeof(stacke));
-				aux1->type = 0;
-				aux1->value.literalI = auxvar->value.literalI;
-				StackPush(actualFrame->datastack, aux1);
+				pushvar(actualFrame->datastack, auxvar);
 				actualFrame->pc = (actualFrame->pc)+2;
 				break;
 			case BYT_ADDI:
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				aux1->value.literalI += aux2->value.literalI;
-				StackPush(actualFrame->datastack, aux1);
+				printd("--debugFunction-- Found addi\n");
+				addi(actualFrame->datastack);
 				actualFrame->pc = (actualFrame->pc)+1;
 				break;
 			case BYT_SUBI:
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				aux2->value.literalI -= aux1->value.literalI;
-				StackPush(actualFrame->datastack, aux2);
+				printd("--debugFunction-- Found subi\n");
+				subi(actualFrame->datastack);
 				actualFrame->pc = (actualFrame->pc)+1;
 				break;
 			case BYT_LTI:
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				if(aux2->value.literalI < aux1->value.literalI)
-				{
-					actualFrame->pc = (actualFrame->pc)+1;
-				}
-				else
-				{
-					actualFrame->pc = (actualFrame->pc)+3;
-				}
+				printd("--debugFunction-- Found lti\n");
+				
+				actualFrame->pc = (actualFrame->pc)+lti(actualFrame->datastack);
+				
+				break;
+			case BYT_LEI:
+				printd("--debugFunction-- Found lei\n");
+				
+				actualFrame->pc = (actualFrame->pc)+lei(actualFrame->datastack);
+				
+				break;
+			case BYT_GTI:
+				printd("--debugFunction-- Found gti\n");
+				
+				actualFrame->pc = (actualFrame->pc)+gti(actualFrame->datastack);
+				
+				break;
+			case BYT_GEI:
+				printd("--debugFunction-- Found gei\n");
+				
+				actualFrame->pc = (actualFrame->pc)+gei(actualFrame->datastack);
+				
+				break;
+			case BYT_EQ:
+				printd("--debugFunction-- Found eq\n");
+				
+				actualFrame->pc = (actualFrame->pc)+eq(actualFrame->datastack);
+				
+				break;
+			case BYT_NEQ:
+				printd("--debugFunction-- Found neq\n");
+				
+				actualFrame->pc = (actualFrame->pc)+neq(actualFrame->datastack);
+				
 				break;
 			case BYT_POPVAR:
+				printd("--debugFunction-- Found popvar\n");
 				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
-				aux1 = StackPop(actualFrame->datastack);
-				auxvar->value.literalI = aux1->value.literalI;
+				popvar(actualFrame->datastack, auxvar);
 				actualFrame->pc = (actualFrame->pc)+2;
 				break;
 			default:
-				actualFrame->pc = (actualFrame->pc)+1;
-		}
-	}
-	
-	return NULL;
-}
-
-void * debugFunction(frame *actualFrame)
-{
-	char * op = actualFrame->func->start;
-	char offset = actualFrame->func->offset;
-	
-	stacke * aux1, * aux2, * auxres;
-	var * auxvar;
-	
-	while(op[actualFrame->pc] != 0)
-	{
-		fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
-		switch(op[actualFrame->pc])
-		{
-			case BYT_GOTO:
-				print("--debugFunction-- Found goto\n");
-				actualFrame->pc = op[(actualFrame->pc)+1];
-				break;
-			case BYT_PUSHI:
-				print("--debugFunction-- Found pushi\n");
-				aux1 = malloc(sizeof(stacke));
-				aux1->type = 0;
-				aux1->value.literalI = *(int *)&(op[(actualFrame->pc)+1]);
-				StackPush(actualFrame->datastack, aux1);
-				actualFrame->pc = (actualFrame->pc)+5;
-				break;
-			case BYT_PUSHF:
-				print("--debugFunction-- Found pushf\n");
-				aux1 = malloc(sizeof(stacke));
-				aux1->type = 0;
-				aux1->value.literalF = *(float *)&(op[(actualFrame->pc)+1]);
-				StackPush(actualFrame->datastack, aux1);
-				actualFrame->pc = (actualFrame->pc)+5;
-				break;
-			case BYT_PUSHVAR:
-				print("--debugFunction-- Found pushvar\n");
-				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
-				aux1 = malloc(sizeof(stacke));
-				aux1->type = 0;
-				aux1->value.literalI = auxvar->value.literalI;
-				StackPush(actualFrame->datastack, aux1);
-				actualFrame->pc = (actualFrame->pc)+2;
-				break;
-			case BYT_ADDI:
-				print("--debugFunction-- Found addi\n");
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				aux1->value.literalI += aux2->value.literalI;
-				StackPush(actualFrame->datastack, aux1);
-				actualFrame->pc = (actualFrame->pc)+1;
-				break;
-			case BYT_SUBI:
-				print("--debugFunction-- Found subi\n");
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				aux2->value.literalI -= aux1->value.literalI;
-				StackPush(actualFrame->datastack, aux2);
-				actualFrame->pc = (actualFrame->pc)+1;
-				break;
-			case BYT_LTI:
-				print("--debugFunction-- Found lti\n");
-				aux1 = StackPop(actualFrame->datastack);
-				aux2 = StackPop(actualFrame->datastack);
-				fprintf(stdout, "--debugFunction-- Comparing %d and %d.\n", aux2->value.literalI, aux1->value.literalI);
-				if(aux2->value.literalI < aux1->value.literalI)
-				{
-					print("--debugFunction-- It is less!\n");
-					actualFrame->pc = (actualFrame->pc)+1;
-				}
-				else
-				{
-					print("--debugFunction-- It is NOT less!\n");
-					actualFrame->pc = (actualFrame->pc)+3;
-				}
-				break;
-			case BYT_POPVAR:
-				print("--debugFunction-- Found popvar\n");
-				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
-				aux1 = StackPop(actualFrame->datastack);
-				auxvar->value.literalI = aux1->value.literalI;
-				actualFrame->pc = (actualFrame->pc)+2;
-				break;
-			default:
-				print("--debugFunction-- Found unknown op\n");
+				printd("--debugFunction-- Found unknown op\n");
 				actualFrame->pc = (actualFrame->pc)+1;
 		}
 		printStatus(actualFrame);
 	}
-	fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
-	print("--debugFunction-- Found HALT!\n");
+	if(debug)
+		fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
+	printd("--debugFunction-- Found HALT!\n");
 	
 	return NULL;
 }
 
 void printStatus(frame * fr)
 {
-	fprintf(stdout, "Actual status: %d elems on stack.\n\n", fr->datastack->top+1);
+	if(debug)
+		fprintf(stdout, "Actual status: %d elems on stack.\n\n", fr->datastack->top+1);
 }
 
 frame * createFrame(char * function)
@@ -391,7 +410,8 @@ frame * createFrame(char * function)
 	
 	result->pc = result->func->offset+1;
 	
-	fprintf(stdout, "--createFrame-- Gonna allocate all the variables (%d).\n", result->func->var_count);
+	if(verbose)
+		fprintf(stdout, "--createFrame-- Gonna allocate all the variables (%d).\n", result->func->var_count);
 	
 	for(i=0; i<result->func->var_count; i++)
 	{
@@ -407,7 +427,8 @@ frame * createFrame(char * function)
 		}
 		else
 		{
-			fprintf(stdout, "--createFrame-- Added variable %d.\n", i+1);
+			if(verbose)
+				fprintf(stdout, "--createFrame-- Added variable %d.\n", i+1);
 			aux->next = lastaux;
 			aux = lastaux;
 		}
@@ -421,43 +442,54 @@ frame * createFrame(char * function)
 
 var *findVariable(var * variables, unsigned char id)
 {
-	fprintf(stdout, "--findVariable-- Searching var %d.\n", id);
+	if(debug)
+		fprintf(stdout, "--findVariable-- Searching var %d.\n", id);
 	char found = 0;
 	var * aux = variables;
 	while(aux && !found)
 	{
 		if(aux->id == id)
 		{
-			print("Found :)\n");
+			printd("--findVariable-- Found :)\n");
 			found = 1;
 			return aux;
 		}
 		aux = aux->next;
 	}
-	print("--findVariable-- Not found :(\n");
+	printd("--findVariable-- Not found :(\n");
 	return NULL;
 }
 
-char *readStringBytes(int *offset, char * text)
+int readStringBytes(char * source, char **destination)
 {
-	char length = *(text+*offset);
+	int length = (*source);
 	
-	(*offset)++;
-	char *result = malloc(sizeof(char)*length + 1);
+	if(verbose) printf("--readStringBytes-- Allocating %d bytes...\n", length+1);
 	
-	memcpy(result, text+*offset, length);
+	*destination = malloc(sizeof(char)*length + 1);
 	
-	result[length]='\0';
+	if(!*destination)
+	{
+		printf("--readStringBytes-- Could not allocate %d bytes\n",length + 1); 
+	}
 	
-	(*offset)+=length;
+	if(!memcpy(*destination, source+1, length))
+	{
+		printf("--readStringBytes-- Failed while copying %d bytes\n", length+1);
+		exit(4);
+	}
 	
-	return result;
+	(*destination)[length]='\0';
+	
+	if(verbose) printf("--readStringBytes-- Offset is %d\n", length+1);
+	
+	return length+1;
 }
 
-char * parse_file(FILE * fi)
+unsigned char * parse_file(FILE * fi)
 {
 	int lSize;
-	char * result;
+	unsigned char * result;
 	
 	fseek(fi, 0, SEEK_END);
 	lSize = ftell(fi);
@@ -467,10 +499,12 @@ char * parse_file(FILE * fi)
 	int i = fread(result, 1, lSize, fi);
 	if(result==NULL)
 	{
+		if(verbose)
 		fprintf(stdout, "HEHEAIHEIAOEH");
 	}
 	if(i!=lSize)
 	{
+		if(verbose)
 		fprintf(stdout, "aoisjoaija");
 	}
 	
@@ -489,13 +523,27 @@ FILE * open_file(char * name)
 
 void print(char * text)
 {
-	fprintf(stdout, text);
+	if(verbose)
+		fprintf(stdout, text);
+}
+
+void printd(char * text)
+{
+	if(debug)
+		fprintf(stdout, text);
 }
 
 void openFile(char * name)
 {
-	FILE * source = fopen(name, "r");
-	char * pch;
+	FILE * source;
+	char * pch, *output;
+
+	addExtensionIfNeeded(name);
+	
+	source = fopen(name, "r");
+	
+	if(verbose)
+		fprintf(stdout, "--openFile-- Trying to open \"%s\"\n", name);
 	
 	if(!source)
 	{
@@ -503,69 +551,63 @@ void openFile(char * name)
 		exit(1);
 	}
 	
-	pch = strchr(name, '.');
-	char * output = malloc(sizeof(char) * (pch-name+1+5));
+	pch = strrchr(name, '.');
+	output = malloc(sizeof(char) * (pch-name+1+5));
 	strcpy(output, name);
-	pch = strchr(output, '.');
+	pch = strrchr(output, '.');
 	pch[1] = 'b';
 	pch[2] = 'f';
 	pch[3] = 'g';
 	pch[4] = 's';
 	pch[5] = '\0';
 	
-	fprintf(stdout, "--openFile-- Trying to save on \"%s\"\n", output);
+	if(verbose)
+		fprintf(stdout, "--openFile-- Trying to save on \"%s\"\n", output);
 	
 	parseFile(source, output);
+	
+	fclose(source);
 }
 
-int main()
+void addExtensionIfNeeded(char * name)
 {
-	fprintf(stdout, "Benvingut a l'intèrpret de FastGameScript!\n\n");
-	
-	char * name = "example_fibonacci_complexe.fgs";
-	
-	fprintf(stdout, "Intentarem llegir el codi de l'arxiu \"%s\"!\n", name);
-	
-	openFile(name);
-	
-	
-	FILE * file = open_file("example_fibonacci_complexe.bfgs");
-	frame * basicFrame;
-	var * input;
-	
-	if(file==NULL)
+	char *extension, *auxName;
+	extension = strrchr(name, '.');
+	if(extension && !strcmp(extension, ".fgs"))
 	{
-		fprintf(stdout, "Error al llegir caca pipi :( \n");
-		exit(1);
+		auxName = malloc((extension-name) + 5);
+		if(!auxName)
+		{
+			printf("WOW WO WOW\n");
+			exit(3);
+		}
+		strcpy(auxName, name);
+		extension = (auxName + (extension-name)+1);
+		extension[0] = 'b';
+		extension[1] = 'f';
+		extension[2] = 'g';
+		extension[3] = 's';
+		extension[4] = '\0';
+		
+		/* free(name); */
+		name = auxName;
 	}
-	
-	char answ;
-	scanf("%c\n", &answ);
-	
-	
-	while(answ != 'n')
+	else if(!extension)
 	{
-		print("Reading file...\n");
-		globalFunctions = read_file(parse_file(file));
-		
-		print("Closing the file...\n");
-		
-		print("Now, we're gonna try to load fibonacci function\n");
-		basicFrame = createFrame("fibonacci");
-		
-		print("Selecting manually the input var for fibonacci\n");
-		input = findVariable(basicFrame->variables, 1);
-		input->type = 0;
-		input->value.literalI = 70;
-		
-		fprintf(stdout, "Now var n is: %d\n", basicFrame->variables->value);
-		
-		print("HERE WE GO!\n");
-		runFunction(basicFrame);
-	
-		fprintf(stdout, "Fibonacci number on %dth position is: %d\n", findVariable(basicFrame->variables, 1)->value.literalI, findVariable(basicFrame->variables, 4)->value.literalI);
-		
-		scanf("%c\n", &answ);
+		auxName = malloc(strlen(name)+5);
+		strcpy(auxName, name);
+		strcat(auxName, ".fgs");
+		/* free(name);  */
+		name = auxName;
 	}
-	fclose(file);
+}
+
+int fileModifiedAfterCompilation(char * name)
+{
+	
+	
+	addExtensionIfNeeded(name);
+	
+	
+	
 }

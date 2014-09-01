@@ -313,10 +313,10 @@ bytecode_entry *gen_code_op(INST_SET op)
 	return newQuad;
 }
 
-bytecode_entry *gen_code_op(INST_SET op, C3A_value * var1, C3A_value * var2)
+/* bytecode_entry *gen_code_op(INST_SET op, C3A_value * var1, C3A_value * var2)
 {
 	
-}
+} */
 
 void backpatch(BP_list* list, int gotoL)
 {

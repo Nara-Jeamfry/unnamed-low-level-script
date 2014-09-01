@@ -13,7 +13,7 @@ fibonacci( int n )
 	{ gti := 3; }
 	if(1 = 2)
 	{ gti := 3; }
-	if(1 <> 2)
+	if(1 <> 2 and 2 <> 1)
 	{ gti := 3; }
 		
 	x := 1;

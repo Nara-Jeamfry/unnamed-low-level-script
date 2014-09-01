@@ -53,6 +53,9 @@ char verbose;
 char debug;
 #endif
 
+/**
+ *	This global var saves all the functions loaded by the parser.
+ */
 functions * globalFunctions;
 
 function *findFunction(char, functions *);

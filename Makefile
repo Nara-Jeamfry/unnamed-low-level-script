@@ -13,7 +13,7 @@ SRCY = prac3y.tmp.c
 SRCH = prac3.h
 SRCSYM = symtab.c
 YHEADER = prac3y.h
-LIBS = fgs_stack.c fgs_interpreter_ops.c
+LIBS = fgs_stack.c fgs_interpreter_ops.c fgs_file_treatment.c fgs_prints.c
 
 INTC = fgs.c
 INTH = fgs.h

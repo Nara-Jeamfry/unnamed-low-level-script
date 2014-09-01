@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "fgs_copia.h"
+#include "fgs.h"
 #include "prac3.h"
 
 /** Reads data from a FGS-ByteCode file.
@@ -378,12 +378,6 @@ void * runFunction(frame *actualFrame)
 	return NULL;
 }
 
-void printStatus(frame * fr)
-{
-	if(debug)
-		fprintf(stdout, "Actual status: %d elems on stack.\n\n", fr->datastack->top+1);
-}
-
 frame * createFrame(char * function)
 {
 	frame * result = malloc(sizeof(frame));
@@ -509,105 +503,4 @@ unsigned char * parse_file(FILE * fi)
 	}
 	
 	return result;
-}
-
-FILE * open_file(char * name)
-{
-	
-	FILE * file;
-	
-	file = fopen(name, "rb");
-	
-	return file;
-}
-
-void print(char * text)
-{
-	if(verbose)
-		fprintf(stdout, text);
-}
-
-void printd(char * text)
-{
-	if(debug)
-		fprintf(stdout, text);
-}
-
-void openFile(char * name)
-{
-	FILE * source;
-	char * pch, *output;
-
-	addExtensionIfNeeded(name);
-	
-	source = fopen(name, "r");
-	
-	if(verbose)
-		fprintf(stdout, "--openFile-- Trying to open \"%s\"\n", name);
-	
-	if(!source)
-	{
-		printf("couldn't open file \"%s\" for reading\n", name);
-		exit(1);
-	}
-	
-	pch = strrchr(name, '.');
-	output = malloc(sizeof(char) * (pch-name+1+5));
-	strcpy(output, name);
-	pch = strrchr(output, '.');
-	pch[1] = 'b';
-	pch[2] = 'f';
-	pch[3] = 'g';
-	pch[4] = 's';
-	pch[5] = '\0';
-	
-	if(verbose)
-		fprintf(stdout, "--openFile-- Trying to save on \"%s\"\n", output);
-	
-	parseFile(source, output);
-	
-	fclose(source);
-}
-
-void addExtensionIfNeeded(char * name)
-{
-	char *extension, *auxName;
-	extension = strrchr(name, '.');
-	if(extension && !strcmp(extension, ".fgs"))
-	{
-		auxName = malloc((extension-name) + 5);
-		if(!auxName)
-		{
-			printf("WOW WO WOW\n");
-			exit(3);
-		}
-		strcpy(auxName, name);
-		extension = (auxName + (extension-name)+1);
-		extension[0] = 'b';
-		extension[1] = 'f';
-		extension[2] = 'g';
-		extension[3] = 's';
-		extension[4] = '\0';
-		
-		/* free(name); */
-		name = auxName;
-	}
-	else if(!extension)
-	{
-		auxName = malloc(strlen(name)+5);
-		strcpy(auxName, name);
-		strcat(auxName, ".fgs");
-		/* free(name);  */
-		name = auxName;
-	}
-}
-
-int fileModifiedAfterCompilation(char * name)
-{
-	
-	
-	addExtensionIfNeeded(name);
-	
-	
-	
 }

@@ -134,14 +134,26 @@ false		{
 				return LITERAL_BOOL;
 			}
 			
+[&&]		{
+				return AND;
+			}
+			
 and			{
 				return AND;
+			}
+			
+[||]		{
+				return OR;
 			}
 
 or			{
 				return OR;
 			}
 
+[!]			{
+				return NOT;
+			}		
+			
 not			{
 				return NOT;
 			}

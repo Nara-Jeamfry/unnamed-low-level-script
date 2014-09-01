@@ -18,12 +18,12 @@ LIBS = fgs_stack.c fgs_interpreter_ops.c
 INTC = fgs.c
 INTH = fgs.h
 
-INTCCOPY = fgs_copia.c
+INTTESTC = fgs_copia.c
 INTHCOPY = fgs_copia.h
 
 BIN = prac3.exe
 INTBIN = fgs.exe
-INTBINCOPY = fgs_copia.exe
+INTTEST = fgs_copia.exe
 
 LFLAGS = -n -o $(SRCL)
 YFLAGS = -d -v -o $(SRCY) --defines=$(YHEADER)
@@ -45,12 +45,9 @@ testfgs : compile compile_copia
 
 testfgscopia : compile_copia
 	./$(INTBINCOPY)
-
-compile : $(SRCL) $(SRCY)
-	$(CC) -o $(INTBIN) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTC) $(LIBS)
 	
-compile_copia : $(SRCL) $(SRCY)
-	$(CC) -o $(INTBINCOPY) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTCCOPY) $(LIBS)
+compile : $(SRCL) $(SRCY)
+	$(CC) -o $(INTTEST) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTC) $(INTTESTC) $(LIBS)
 	
 valgrind : compile_copia
 	valgrind --tool=memcheck --leak-check=yes ./$(INTBINCOPY)

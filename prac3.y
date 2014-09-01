@@ -427,14 +427,14 @@ addition_expr
 				{
 					aux->oprel = I2F;
 					aux->val1 = tempLocation();
-					aux->val2 = $1.variable;
+					aux->val2 = duplicate_entry($1.variable);
 					$1.variable = aux->val1;
 				}
 				if($3.type == INTT)
 				{
 					aux->oprel = I2F;
 					aux->val1 = tempLocation();
-					aux->val2 = $3.variable;
+					aux->val2 = duplicate_entry($3.variable);
 					$3.variable = aux->val1;
 				}
 			}
@@ -452,8 +452,8 @@ addition_expr
 			}
 			
 			aux->val1 = tempLocation();
-			aux->val2 = $1.variable;
-			aux->val3 = $3.variable;
+			aux->val2 = duplicate_entry($1.variable);
+			aux->val3 = duplicate_entry($3.variable);
 			$$.variable = aux->val1;
 		}
 		if(opresult == STRINGT)
@@ -473,7 +473,7 @@ addition_expr
 						aux->oprel=F2S;
 					}
 					aux->val1 = tempLocation();
-					aux->val2 = $1.variable;
+					aux->val2 = duplicate_entry($1.variable);
 					$1.variable = aux->val1;
 				}
 				if($3.type != STRINGT)
@@ -487,7 +487,7 @@ addition_expr
 						aux->oprel=F2S;
 					}
 					aux->val1 = tempLocation();
-					aux->val2 = $3.variable;
+					aux->val2 = duplicate_entry($3.variable);
 					$3.variable = aux->val1;
 				}
 			}
@@ -495,8 +495,8 @@ addition_expr
 			aux=gen_code_op(op);
 			aux->oprel = ADDS;
 			aux->val1 = tempLocation();
-			aux->val2 = $1.variable;
-			aux->val3 = $3.variable;
+			aux->val2 = duplicate_entry($1.variable);
+			aux->val3 = duplicate_entry($3.variable);
 			$$.variable = aux->val1;
 		}
 	}
@@ -518,7 +518,7 @@ addition_expr
 					aux = gen_code_op(op2);
 					aux->oprel = I2F;
 					aux->val1 = tempLocation();
-					aux->val2 = $1.variable;
+					aux->val2 = duplicate_entry($1.variable);
 					$1.variable = aux->val1;
 				}
 				if($3.type == INTT)
@@ -527,7 +527,7 @@ addition_expr
 					aux = gen_code_op(op2);
 					aux->oprel = I2F;
 					aux->val1 = tempLocation();
-					aux->val2 = $3.variable;
+					aux->val2 = duplicate_entry($3.variable);
 					$3.variable = aux->val1;
 				}
 			}
@@ -544,8 +544,8 @@ addition_expr
 			}
 			
 			aux->val1 = tempLocation();
-			aux->val2 = $1.variable;
-			aux->val3 = $3.variable;
+			aux->val2 = duplicate_entry($1.variable);
+			aux->val3 = duplicate_entry($3.variable);
 			$$.variable = aux->val1;
 		}
 	}
@@ -568,7 +568,7 @@ addition_expr
 					op = ASSIGNMENT_UN;
 					aux = gen_code_op(op);
 					aux->val1 = tempLocation();
-					aux->val2 = $2.variable;
+					aux->val2 = duplicate_entry($2.variable);
 					aux->oprel = CHSI;
 					$$.variable = aux->val1;
 				
@@ -580,7 +580,7 @@ addition_expr
 					op = ASSIGNMENT_UN;
 					aux = gen_code_op(op);
 					aux->val1 = tempLocation();
-					aux->val2 = $2.variable;
+					aux->val2 = duplicate_entry($2.variable);
 					aux->oprel = CHSF;
 					$$.variable = aux->val1;
 				
@@ -611,7 +611,7 @@ multiplication_expr
 					aux = gen_code_op(op);
 					aux->oprel = I2F;
 					aux->val1 = tempLocation();
-					aux->val2 = $1.variable;
+					aux->val2 = duplicate_entry($1.variable);
 					$1.variable = aux->val1;
 				}
 				if($3.type == INTT)
@@ -620,7 +620,7 @@ multiplication_expr
 					aux = gen_code_op(op);
 					aux->oprel = I2F;
 					aux->val1 = tempLocation();
-					aux->val2 = $3.variable;
+					aux->val2 = duplicate_entry($3.variable);
 					$3.variable = aux->val1;
 				}
 			}
@@ -635,8 +635,8 @@ multiplication_expr
 				aux->oprel = MULF;
 			}
 			aux->val1 = tempLocation();
-			aux->val2 = $1.variable;
-			aux->val3 = $3.variable;
+			aux->val2 = duplicate_entry($1.variable);
+			aux->val3 = duplicate_entry($3.variable);
 			$$.variable = aux->val1;
 		}
 	}
@@ -823,7 +823,7 @@ boolean
 					aux = gen_code_op(op);
 					aux->oprel = I2F;
 					aux->val1 = tempLocation();
-					aux->val2 = $1.variable;
+					aux->val2 = duplicate_entry($1.variable);
 					$1.variable = aux->val1;
 				}
 				if($3.type == INTT)
@@ -832,7 +832,7 @@ boolean
 					aux = gen_code_op(op);
 					aux->oprel = I2F;
 					aux->val1 = tempLocation();
-					aux->val2 = $3.variable;
+					aux->val2 = duplicate_entry($3.variable);
 					$3.variable = aux->val1;
 				}
 			}
@@ -847,8 +847,8 @@ boolean
 			{
 				aux->oprel = LTF;
 			}
-			aux->val1 = $1.variable;
-			aux->val2 = $3.variable;
+			aux->val1 = duplicate_entry($1.variable);
+			aux->val2 = duplicate_entry($3.variable);
 			$$.trueList = addToList(NULL, aux);
 			op = GOTO;
 			aux = gen_code_op(op);

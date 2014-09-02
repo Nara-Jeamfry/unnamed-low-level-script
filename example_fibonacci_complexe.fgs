@@ -9,12 +9,8 @@ fibonacci( int n )
 		x := y;
 		y := fib;
 	}
-	if(1 > 2)
-	{ gti := 3; }
-	if(1 = 2)
-	{ gti := 3; }
-	if(1 <> 2)
-	{ gti := 3; }
+	if(1 < 2)
+		x:=1;
 		
 	x := 1;
 }

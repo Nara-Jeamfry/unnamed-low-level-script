@@ -11,7 +11,124 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "fgs.h"
+#include "fgs_internals.h"
 #include "prac3.h"
+
+struct fgs_state {
+	fgsfile *compiled_files;
+	
+	bfgsfile *loaded_files;
+};
+
+/* ----------------CODE---------------- */
+
+/** Initializes the FGS context, enabling all the functions.
+	start_context
+	
+	This method initializes the context of the FGS interpreter.
+*/
+	
+fgs_state *start_context()
+{
+	fgs_state *state = malloc(sizeof(fgs_state));
+	
+	initialize_state(state);
+}
+
+void initialize_state(fgs_state *fgs)
+{
+	fgs->compiled_files = NULL;
+	fgs->loaded_files = NULL;
+}
+
+void clean_state(fgs_state *fgs)
+{
+	fgsfile *files, *auxfgs;
+	bfgsfile *codes, *auxbfgs;
+	
+	files = fgs->compiled_files;
+	while(files)
+	{
+		free(files->name);
+		
+		auxfgs = files->next;
+		free(files);
+		files = auxfgs;
+	}
+	
+	codes = fgs->loaded_files;
+	while(codes)
+	{
+		free(codes->name); 
+		free(codes->code);
+		
+		auxbfgs = codes->next;
+		free(codes);
+		codes = auxbfgs;
+	}
+}
+
+void destroy_context(fgs_state *fgs)
+{
+	if(fgs)
+	{
+		clean_state(fgs);
+		free(fgs);
+	}
+}
+
+fgsfile * fgs_get_files(fgs_state *fgs)
+{
+	return fgs->compiled_files;
+}
+
+void fgs_set_file(fgs_state *fgs, fgsfile *file)
+{
+	fgs->compiled_files = file;
+}
+
+bfgsfile * fgs_get_codes(fgs_state *fgs)
+{
+	return fgs->loaded_files;
+}
+
+void fgs_set_code(fgs_state *fgs, bfgsfile *file)
+{
+	fgs->loaded_files = file;
+}
+
+int add_file_to_state(fgs_state *fgs, char * name)
+{
+	FILE * file;
+	
+	unsigned char * byteCode;
+	char * bytefile;
+	
+	compileFile(fgs, name);
+	
+	changeSourceToByteName(&bytefile, name);
+	
+	if(verbose)
+		printf("--parse_file-- Checking if %s is already loaded...\n", bytefile);
+		
+	if(fileAlreadyLoaded(fgs_get_codes(fgs), bytefile))
+	{
+		if(verbose)
+			printf("--parse_file-- ByteCode is up to date.\n\n", bytefile);
+			
+		free(bytefile);
+		return;
+	}
+	
+	byteCode = parse_file(fgs, bytefile);
+	
+	add_loaded_file(fgs, bytefile, byteCode);
+	
+	globalFunctions = read_file(byteCode);
+	print("Closing the file...\n");
+	
+	free(bytefile); /* we have to free the name (changeSourceToByteName can't do it for us) */
+}
 
 /** Reads data from a FGS-ByteCode file.
 	read_file
@@ -478,29 +595,4 @@ int readStringBytes(char * source, char **destination)
 	if(verbose) printf("--readStringBytes-- Offset is %d\n", length+1);
 	
 	return length+1;
-}
-
-unsigned char * parse_file(FILE * fi)
-{
-	int lSize;
-	unsigned char * result;
-	
-	fseek(fi, 0, SEEK_END);
-	lSize = ftell(fi);
-	rewind(fi);
-	
-	result = malloc(sizeof(char)*lSize);
-	int i = fread(result, 1, lSize, fi);
-	if(result==NULL)
-	{
-		if(verbose)
-		fprintf(stdout, "HEHEAIHEIAOEH");
-	}
-	if(i!=lSize)
-	{
-		if(verbose)
-		fprintf(stdout, "aoisjoaija");
-	}
-	
-	return result;
 }

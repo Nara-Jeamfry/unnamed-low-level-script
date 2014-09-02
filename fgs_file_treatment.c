@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "fgs.h"
+#include "fgs_internals.h"
 
 void addExtensionIfNeeded(char * name)
 {
@@ -45,6 +46,37 @@ FILE * open_file(char * name)
 }
 
 void openFile(char * name)
+unsigned char * parse_file(fgs_state * fgs, char * filename)
+{
+	int lSize;
+	unsigned char * result;
+	
+	FILE * fi;
+	
+	fi = open_file(filename);
+	
+	fseek(fi, 0, SEEK_END);
+	lSize = ftell(fi);
+	rewind(fi);
+	
+	result = malloc(sizeof(char)*lSize);
+	if(result==NULL)
+	{
+		fprintf(stdout, "--parse_file-- Could not allocate this much memory.\n");
+		exit(3);
+	}
+	
+	int i = fread(result, 1, lSize, fi);
+	if(i!=lSize)
+	{
+		if(verbose)
+		fprintf(stdout, "--parse_file-- I have read the same number of bytes that the file has but something went wrong.\n");
+	}
+	
+	fclose(fi);
+	
+	return result;
+}
 {
 	FILE * source;
 	char * pch, *output;

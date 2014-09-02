@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 
 #include "ops.h"
 #include "prac3.h"

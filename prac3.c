@@ -323,6 +323,7 @@ void copyValue(C3A_value * source, C3A_value * dest)
 	}
 	dest->type = source->type;
 	
+
 	switch(dest->type)
 	{
 		case 0:

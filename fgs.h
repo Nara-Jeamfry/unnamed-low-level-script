@@ -44,6 +44,24 @@ typedef struct function_list {
 	struct function_list *next;
 } functions;
 
+typedef struct compiled_files {
+	time_t compilation_time;
+	char * name;
+
+	struct compiled_files * next;
+} fgsfile;
+
+typedef struct loaded_files {
+	time_t load_time;
+	char * name;
+	
+	char * code;
+	
+	struct loaded_files * next;
+} bfgsfile;
+
+typedef struct fgs_state fgs_state;
+
 #ifndef VERBOSE
 #define VERBOSE
 char verbose;

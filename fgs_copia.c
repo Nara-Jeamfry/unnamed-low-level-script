@@ -59,9 +59,16 @@ int main(int argc, char **argv)
 		/* code on add_file_to_state was here */
 		
 		add_file_to_state(FGS, name);
+		add_file_to_state(FGS, "wowo.fgs");
 		
 		print("Now, we're gonna try to load fibonacci function\n");
-		basicFrame = createFrame("fibonacci");
+		basicFrame = createFrame(FGS, "fibonacci");
+		
+		if(basicFrame == NULL)
+		{
+			printf("Didn't find function.");
+			exit(9);
+		}
 		
 		print("Selecting manually the input var for fibonacci\n");
 		input = findVariable(basicFrame->variables, 1);

@@ -18,6 +18,9 @@ struct fgs_state {
 	fgsfile *compiled_files;
 	
 	bfgsfile *loaded_files;
+	
+	functions *list;
+	functions *tail;
 };
 
 /* ----------------CODE---------------- */
@@ -39,6 +42,8 @@ void initialize_state(fgs_state *fgs)
 {
 	fgs->compiled_files = NULL;
 	fgs->loaded_files = NULL;
+	fgs->list = NULL;
+	fgs->tail = NULL;
 }
 
 void clean_state(fgs_state *fgs)
@@ -97,6 +102,26 @@ void fgs_set_code(fgs_state *fgs, bfgsfile *file)
 	fgs->loaded_files = file;
 }
 
+void add_function(fgs_state * fgs, functions * f)
+{
+	if(!fgs->list)
+	{
+		fgs->list = f;
+		fgs->tail = f;
+		return;
+	}
+	if(!findFunctionByName(f->value->name, fgs->list))
+	{
+		fgs->tail->next = f;
+		fgs->tail = f;
+	}
+}
+
+functions * fgs_get_list(fgs_state * fgs)
+{
+	return fgs->list;
+}
+
 int add_file_to_state(fgs_state *fgs, char * name)
 {
 	FILE * file;
@@ -124,7 +149,7 @@ int add_file_to_state(fgs_state *fgs, char * name)
 	
 	add_loaded_file(fgs, bytefile, byteCode);
 	
-	globalFunctions = read_file(byteCode);
+	int result = read_file(fgs, byteCode);
 	print("Closing the file...\n");
 	
 	free(bytefile); /* we have to free the name (changeSourceToByteName can't do it for us) */
@@ -144,207 +169,21 @@ int add_file_to_state(fgs_state *fgs, char * name)
 	\return A functions * data struct containing the existing functions 
 		and information about it.
 */
-functions * read_file(unsigned char * fi)
+functions * read_file_wotototo(fgs_state * fgs, unsigned char * fi)
 {
-	char header[13] = { 'g', 'a', 'm', 'e', '_', 's', 'c', 'r', 'i', 'p', 't', 3, 0 };
-	if(memcmp(fi,header, 13))
-	{	
-		print("Hey! L'arxiu no és correcte! :(\n");
-		return NULL;
-	}
-	
-	print("00: Found game_script at header\n");
-	
-	int offset = 13, i, j, auxNumber;
+	int offset = 13, i, j, auxNumber, line;
 	int function_count, type_count, var_count;
 	unsigned char op;
-	function *actual = malloc(sizeof(function));
+	
+	function *actual;
 	function *aux;
-	functions * last_function;
-	functions * result = last_function = malloc(sizeof(functions));
+	functions * func_container = NULL;
+		
 	type * types = NULL, *auxtype = NULL;
 	char * auxString;
-	
-	function_count = fi[offset++];
-	if(verbose)
-		fprintf(stdout, "%.2X: N. de funcions: %d\n", offset-1, function_count);
-	
-	for(i=0; i<function_count; i++)
+	while(op != 0)
 	{
-		if(verbose)
-			fprintf(stdout, "-- Funcio %d\n", i+1);
-		auxNumber = readStringBytes((char *)(fi+offset), &(actual->name));
-		if(verbose)
-			printf("%.2X: Name and lenght occupy %d bytes\n",offset, auxNumber); 
-		offset+=auxNumber;
-		type_count = fi[offset++];
-		if(verbose)
-			printf("%.2X: Function %s has %d types.\n", offset-1, actual->name, type_count);
-		actual->type_count = type_count;
 		
-		for(j=0; j<type_count; j++)
-		{
-			types = malloc(sizeof(type));
-			if(auxtype)
-			{
-				auxtype->next = types;
-			}
-			auxNumber=readStringBytes((char *)(fi+offset), &(types->name));
-			if(verbose)
-					fprintf(stdout, "%.2X: Type %s\n", offset, types->name);
-			offset+=auxNumber;
-			auxtype = types;
-		}
-		
-		actual->types = types;
-		types = NULL;
-		
-		actual->id = fi[offset++];
-		if(verbose)
-			fprintf(stdout, "%.2X: Funcio %d: %s\n", offset-1, actual->id, actual->name);
-		
-		actual->var_count = 7;
-		
-		
-		last_function->value = actual;
-		last_function->next = malloc(sizeof(functions));
-		last_function = last_function->next;
-		actual = malloc(sizeof(function));
-	}
-	
-	free(last_function);
-	free(actual); 
-	
-	int line = 0;
-	
-	for(i=0; i<function_count; i++)
-	{
-		line = offset;
-		op = fi[offset++];
-		actual = findFunction(op, result);
-		actual->start = fi+offset;
-		actual->offset = offset-2-line;
-		if(verbose)
-			fprintf(stdout, "Code for function %s, starting at %X:\n\n", actual->name, (unsigned char)actual->offset);
-		while(op != 0)
-		{
-			op = fi[offset++];
-			switch(op)
-			{
-				case BYT_GOTO:
-					if(verbose)
-						fprintf(stdout, "%X: goto %X\n", offset-3-line, fi[offset++]);
-					else
-						offset++;
-					break;
-				case BYT_PUSHVAR:
-					if(verbose)
-						fprintf(stdout, "%X: pushvar %d\n", offset-3-line, fi[offset++]);
-					else
-						offset++;
-					break;
-				case BYT_PUSHI:
-					if(verbose)
-						fprintf(stdout, "%X: pushi %d\n", offset-3-line, *(int *)&fi[offset++]);
-					else
-						offset++;
-					offset+=3;
-					break;
-				case BYT_PUSHF:
-					if(verbose)
-						fprintf(stdout, "%X: pushf %f\n", offset-3-line, *(float *)&fi[offset++]);
-					else
-						offset++;
-					offset+=3;
-					break;
-				case BYT_PUSHS:
-					offset+=readStringBytes((char *)(fi+offset), &(auxString))-1;
-					if(verbose)
-					{
-						fprintf(stdout, "%X: pushs \"%s\"\n", offset-3-line, auxString);
-					}
-					free(auxString);
-					auxString=NULL;
-					break;
-				case BYT_POPVAR:
-					if(verbose)
-						fprintf(stdout, "%X: pop %d\n", offset-3-line, fi[offset++]);
-					else
-						offset++;
-					break;
-				case BYT_I2S:
-					if(verbose)
-						fprintf(stdout, "%X: i2s\n", offset-3-line);
-					break;
-				case BYT_ADDI:
-					if(verbose)
-						fprintf(stdout, "%X: addi\n", offset-3-line);
-					break;
-				case BYT_SUBI:
-					if(verbose)
-						fprintf(stdout, "%X: subi\n", offset-3-line);
-					break;
-				case BYT_MULI:
-					if(verbose)
-						fprintf(stdout, "%X: muli\n", offset-3-line);
-					break;
-				case BYT_DIVI:
-					if(verbose)
-						fprintf(stdout, "%X: divi\n", offset-3-line);
-					break;
-				case BYT_ADDF:
-					if(verbose)
-						fprintf(stdout, "%X: addf\n", offset-3-line);
-					break;
-				case BYT_SUBF:
-					if(verbose)
-						fprintf(stdout, "%X: subf\n", offset-3-line);
-					break;
-				case BYT_MULF:
-					if(verbose)
-						fprintf(stdout, "%X: mulf\n", offset-3-line);
-					break;
-				case BYT_DIVF:
-					if(verbose)
-						fprintf(stdout, "%X: divf\n", offset-3-line);
-					break;
-				case BYT_ADDS:
-					if(verbose)
-						fprintf(stdout, "%X: adds\n", offset-3-line);
-					break;
-				case BYT_HALT:
-					if(verbose)
-						fprintf(stdout, "%X: return\n", offset-3-line);
-					break;
-				case BYT_EQ:
-					if(verbose)
-						fprintf(stdout, "%X: eq\n", offset-3-line);
-					break;
-				case BYT_NEQ:
-					if(verbose)
-						fprintf(stdout, "%X: neq\n", offset-3-line);
-					break;
-				case BYT_LTI:
-					if(verbose)
-						fprintf(stdout, "%X: lti\n", offset-3-line);
-					break;
-				case BYT_LEI:
-					if(verbose)
-						fprintf(stdout, "%X: lei\n", offset-3-line);
-					break;
-				case BYT_GTI:
-					if(verbose)
-						fprintf(stdout, "%X: gti\n", offset-3-line);
-					break;
-				case BYT_GEI:
-					if(verbose)
-						fprintf(stdout, "%X: gei\n", offset-3-line);
-					break;
-				default:
-					if(verbose)
-						fprintf(stdout, "%X: Unknown op %X\n", offset-2-line, op);
-			}
-		}
 		
 		if(verbose)
 			fprintf(stdout, "Function %d ended at offset %X\n", i+1, offset-1);
@@ -354,8 +193,7 @@ functions * read_file(unsigned char * fi)
 	if(verbose)
 		fprintf(stdout, "Hey! Estic interpretant l'arxiu! :)\n");
 	
-	return result;
-	
+	return NULL;
 }
 
 function *findFunction(char id, functions *list)
@@ -378,7 +216,7 @@ function *findFunctionByName(char * name, functions *list)
 	char found = 0;
 	while(list && !found)
 	{
-		if(!strcmp(list->value->name, name))
+		if(list->value != NULL && !strcmp(list->value->name, name))
 		{
 			found = 1;
 			return list->value;
@@ -495,7 +333,7 @@ void * runFunction(frame *actualFrame)
 	return NULL;
 }
 
-frame * createFrame(char * function)
+frame * createFrame(fgs_state * fgs, char * function)
 {
 	frame * result = malloc(sizeof(frame));
 	int i;
@@ -504,7 +342,7 @@ frame * createFrame(char * function)
 	print("--createFrame-- Allocating memory...\n");
 	result->variables = NULL;
 	
-	if(globalFunctions == NULL)
+	if(fgs->list == NULL)
 	{
 		print("--createFrame-- WELL THIS IS EMBARRASSING WE DO NOT HAVE FUNCTIONS THX\n");
 		return NULL;
@@ -512,9 +350,12 @@ frame * createFrame(char * function)
 	else
 	{
 		print("--createFrame-- We have functions! Let's search for it.\n");
-		result->func = findFunctionByName(function, globalFunctions);
+		result->func = findFunctionByName(function, fgs->list);
 		if(result->func == NULL)
+		{
 			print("--createFrame-- Woops. Didn't found that one.\n");
+			return NULL;
+		}
 		else
 			print("--createFrame-- FOUND!\n");
 	}

@@ -84,7 +84,7 @@ function *findFunction(char, functions *);
 function *findFunctionByName(char *, functions *);
 var *findVariable(var *, unsigned char);
 
-frame * createFrame(char *);
+frame * createFrame(fgs_state *, char *);
 
 void * debugFunction(frame *);
 void printStatus(frame *);
@@ -99,7 +99,6 @@ int readStringBytes(char * source, char **destination);
 void print(char *);
 void printd(char *);
 
-void addExtensionIfNeeded(char *);
 FILE * open_file(char *);
-functions * read_file(unsigned char *);
+int read_file(fgs_state *, unsigned char *);
 void call_function();

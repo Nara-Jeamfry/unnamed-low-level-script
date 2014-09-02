@@ -13,7 +13,7 @@ SRCY = prac3y.tmp.c
 SRCH = prac3.h
 SRCSYM = symtab.c
 YHEADER = prac3y.h
-LIBS = fgs_stack.c fgs_interpreter_ops.c fgs_file_treatment.c fgs_prints.c
+LIBS = fgs_stack.c fgs_interpreter_ops.c fgs_file_treatment.c fgs_prints.c fgs_parser.c
 
 INTC = fgs.c
 INTH = fgs.h
@@ -40,17 +40,14 @@ EXEMPLE_ERRORS_FL = <prova_errors_fluxe.txt >output/output_exemple_errors_fl.txt
 
 all : compile
 
-testfgs : compile compile_copia
-	./$(INTBIN)
-
-testfgscopia : compile_copia
-	./$(INTBINCOPY)
+test : compile
+	./$(INTTEST)
 	
 compile : $(SRCL) $(SRCY)
 	$(CC) -o $(INTTEST) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTC) $(INTTESTC) $(LIBS)
 	
-valgrind : compile_copia
-	valgrind --tool=memcheck --leak-check=yes ./$(INTBINCOPY)
+valgrind : compile
+	valgrind --tool=memcheck --leak-check=yes ./$(INTTEST)
 
 $(SRCL) : $(IN_LEX)
 	$(LEX) $(LFLAGS) $<

@@ -3,39 +3,6 @@
 #include "fgs.h"
 #include "fgs_internals.h"
 
-void addExtensionIfNeeded(char * name)
-{
-	char *extension, *auxName;
-	extension = strrchr(name, '.');
-	if(extension && !strcmp(extension, ".fgs"))
-	{
-		auxName = malloc((extension-name) + 5);
-		if(!auxName)
-		{
-			printf("WOW WO WOW\n");
-			exit(3);
-		}
-		strcpy(auxName, name);
-		extension = (auxName + (extension-name)+1);
-		extension[0] = 'b';
-		extension[1] = 'f';
-		extension[2] = 'g';
-		extension[3] = 's';
-		extension[4] = '\0';
-		
-		/* free(name); */
-		name = auxName;
-	}
-	else if(!extension)
-	{
-		auxName = malloc(strlen(name)+5);
-		strcpy(auxName, name);
-		strcat(auxName, ".fgs");
-		/* free(name);  */
-		name = auxName;
-	}
-}
-
 FILE * open_file(char * name)
 {
 	FILE * file;
@@ -97,7 +64,7 @@ void add_loaded_file(fgs_state * fgs, char * name, char * code)
 		return;
 	}
 	
-	while(!auxFile && found)
+	while(auxFile && !found)
 	{
 		if(!strcmp(auxFile->name, name))
 		{
@@ -181,8 +148,6 @@ void compileFile(fgs_state *fgs, char * name)
 	FILE * source;
 	char * pch, *output;
 
-	addExtensionIfNeeded(name);
-	
 	if(verbose)
 		printf("--compileFile-- Checking if %s is already compiled...\n", name);
 		
@@ -242,7 +207,7 @@ void add_compiled_file(fgs_state *fgs, char *name)
 		return;
 	}
 	
-	while(!auxFile && found)
+	while(auxFile && !found)
 	{
 		if(!strcmp(auxFile->name, name))
 		{
@@ -319,9 +284,6 @@ int fileAlreadyLoaded(bfgsfile *filestruct, char * name)
 
 int fileAlreadyCompiled(fgsfile *filestruct, char * name)
 {
-	
-	addExtensionIfNeeded(name);
-	
 	fgsfile *aux = filestruct;
 	time_t actual, compilation;
 	struct stat file_stat;

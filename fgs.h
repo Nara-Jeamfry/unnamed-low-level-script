@@ -59,6 +59,9 @@ char debug;
  */
 functions * globalFunctions;
 
+fgs_state *start_context();
+void destroy_context(fgs_state *);
+
 function *findFunction(char, functions *);
 function *findFunctionByName(char *, functions *);
 var *findVariable(var *, unsigned char);
@@ -81,5 +84,4 @@ void printd(char *);
 void addExtensionIfNeeded(char *);
 FILE * open_file(char *);
 functions * read_file(unsigned char *);
-unsigned char * parse_file(FILE *);
 void call_function();

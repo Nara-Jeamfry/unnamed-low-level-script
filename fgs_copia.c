@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 	if(verbose)
 		fprintf(stdout, "Benvingut a l'intèrpret de FastGameScript!\n\n");
 	
-	char * name = "example_fibonacci_complexe.fgs", * byteCode;
+	char * name = "example_fibonacci_complexe.fgs";
 	int i;
 	char c;
 	
@@ -45,31 +45,20 @@ int main(int argc, char **argv)
 	if(verbose)
 		fprintf(stdout, "Intentarem llegir el codi de l'arxiu \"%s\"!\n", name);
 	
+	fgs_state *FGS;
+	
+	FGS = start_context();
 	
 	FILE * file;
 	frame * basicFrame;
 	var * input;
 	
-	for(i=0; i<1000; i++)
+	for(i=0; i<10000; i++)
 	{
 		print("--------------\n");
-		openFile(name);
+		/* code on add_file_to_state was here */
 		
-		file = open_file("example_fibonacci_complexe.bfgs");
-		
-		if(file==NULL)
-		{
-			fprintf(stdout, "Error al llegir caca pipi :( \n");
-			exit(1);
-		}
-		
-		print("Reading file...\n");
-		byteCode = parse_file(file);
-		globalFunctions = read_file(byteCode);
-		
-		fclose(file);
-		
-		print("Closing the file...\n");
+		add_file_to_state(FGS, name);
 		
 		print("Now, we're gonna try to load fibonacci function\n");
 		basicFrame = createFrame("fibonacci");
@@ -94,9 +83,10 @@ int main(int argc, char **argv)
 			exit(4);
 		}
 		print("--------------\n");
-		free(byteCode);
 	}
 	
 	fprintf(stdout, "Well that worked fine!\n");
+	
+	destroy_context(FGS);
 	return 0;
 }

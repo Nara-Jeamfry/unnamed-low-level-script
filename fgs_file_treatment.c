@@ -42,10 +42,15 @@ FILE * open_file(char * name)
 	
 	file = fopen(name, "rb");
 	
+	if(file==NULL)
+	{
+		fprintf(stdout, "Error while opening file %s\n", name);
+		exit(1);
+	}
+	
 	return file;
 }
 
-void openFile(char * name)
 unsigned char * parse_file(fgs_state * fgs, char * filename)
 {
 	int lSize;
@@ -77,6 +82,7 @@ unsigned char * parse_file(fgs_state * fgs, char * filename)
 	
 	return result;
 }
+void compileFile(fgs_state *fgs, char * name)
 {
 	FILE * source;
 	char * pch, *output;
@@ -86,7 +92,9 @@ unsigned char * parse_file(fgs_state * fgs, char * filename)
 	source = fopen(name, "r");
 	
 	if(verbose)
-		fprintf(stdout, "--openFile-- Trying to open \"%s\"\n", name);
+		fprintf(stdout, "--compileFile-- Trying to open \"%s\"\n", name);
+	
+	source = fopen(name, "r");
 	
 	if(!source)
 	{
@@ -94,18 +102,10 @@ unsigned char * parse_file(fgs_state * fgs, char * filename)
 		exit(1);
 	}
 	
-	pch = strrchr(name, '.');
-	output = malloc(sizeof(char) * (pch-name+1+5));
-	strcpy(output, name);
-	pch = strrchr(output, '.');
-	pch[1] = 'b';
-	pch[2] = 'f';
-	pch[3] = 'g';
-	pch[4] = 's';
-	pch[5] = '\0';
+	changeSourceToByteName(&output, name);
 	
 	if(verbose)
-		fprintf(stdout, "--openFile-- Trying to save on \"%s\"\n", output);
+		fprintf(stdout, "--compileFile-- Trying to save on \"%s\"\n", output);
 	
 	parseFile(source, output);
 	

@@ -125,7 +125,9 @@ int StackPushS(stack * st, stacke * elem)
 			printf("Cannot allocate memory. Exiting...\n");
 			exit(3);
 		}
-		st->contents->value.literalS = elem->value.literalS;
+		
+		st->contents->value.literalS = malloc(strlen(elem->value.literalS)+1);
+		strcpy(st->contents->value.literalS, elem->value.literalS);
 		st->contents->type = 2;
 		st->contents->last = element;
 		st->top++;
@@ -138,28 +140,31 @@ int StackPopI(stack * st, stacke * data)
 	if(!StackEmpty(st))
 	{
 		element = st->contents;
-		if(element->type == 1)
+		if(element->type != 0)
 		{
-			if(stackverbose)	printf("--StackPopI-- Warning: Unexpected format. Converting Float to Integer\n");
-			element->value.literalI = (int)element->value.literalF;
-			element->type = 0;
-		}
-		else if(element->type == 2)
-		{
-			printf("--StackPopI-- Cannot convert from string\n");
-			free(element->value.literalS);
-			free(element);
-			return 0;
-		}
-		else if(element->type != 0)
-		{
-			printf("--StackPopI-- Unknown type received.\n");
-			exit(4);
+			if(element->type == 1)
+			{
+				if(stackverbose)	printf("--StackPopI-- Warning: Unexpected format. Converting Float to Integer\n");
+				element->value.literalI = (int)element->value.literalF;
+				element->type = 0;
+			}
+			else if(element->type == 2)
+			{
+				printf("--StackPopI-- Cannot convert from string\n");
+				free(element->value.literalS);
+				free(element);
+				return 0;
+			}
+			else 
+			{
+				printf("--StackPopI-- Unknown type received.\n");
+				exit(4);
+			}
 		}
 		st->contents = element->last;
 		st->top--;
 
-		if(memcpy(data, element, sizeof(stacke))==NULL)
+		if(!memcpy(data, element, sizeof(stacke)))
 		{
 			printf("--StackPopI-- Cannot pop value: Error copying memory.\n");
 			free(element);

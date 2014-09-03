@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "fgs_stack.h"
+#include "fgs.h"
 
 #ifndef VERBOSE
 #define VERBOSE
@@ -63,19 +64,19 @@ void pushs(stack * st, char * value)
 	free(aux1);
 }
 
-void pushvar(stack * st, var * variable)
+void pushvar(stack * st, var variable)
 {
-	if(variable->type == 0)
+	if(variable.type == 0)
 	{
-		pushi(st, variable->value.literalI);
+		pushi(st, variable.value.literalI);
 	}
-	else if(variable->type == 1)
+	else if(variable.type == 1)
 	{
-		pushf(st, variable->value.literalF);
+		pushf(st, variable.value.literalF);
 	}
-	else if(variable->type == 2)
+	else if(variable.type == 2)
 	{
-		pushs(st, variable->value.literalS);
+		pushs(st, variable.value.literalS);
 	}
 	else
 	{
@@ -84,7 +85,7 @@ void pushvar(stack * st, var * variable)
 	}
 }
 
-void popvar(stack * st, var * variable)
+void popvar(frame * f, stack * st, unsigned char variable)
 {
 	stacke * aux = malloc(sizeof(stacke));
 	int stack_type = StackType(st);
@@ -92,23 +93,17 @@ void popvar(stack * st, var * variable)
 	if(stack_type == 0)
 	{
 		StackPopI(st, aux);
-		
-		variable->type = 0;
-		variable->value.literalI = aux->value.literalI;
+		setVariableI(f, variable, aux->value.literalI);
 	}
 	else if(stack_type == 1)
 	{
 		StackPopF(st, aux);
-		
-		variable->type = 1;
-		variable->value.literalI = aux->value.literalI;
+		setVariableF(f, variable, aux->value.literalF); 
 	}
 	else if(stack_type == 2)
 	{
 		StackPopS(st, aux);
-		
-		variable->type = 2;
-		variable->value.literalI = aux->value.literalI;
+		setVariableS(f, variable, aux->value.literalS);
 	}
 	else
 	{

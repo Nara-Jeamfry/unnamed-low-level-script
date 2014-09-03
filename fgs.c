@@ -233,7 +233,7 @@ void * runFunction(frame *actualFrame)
 	char offset = actualFrame->func->offset;
 	
 	stacke * aux1, * aux2, * auxres;
-	var * auxvar;
+	var auxvar;
 	
 	while(op[actualFrame->pc] != 0)
 	{
@@ -264,7 +264,7 @@ void * runFunction(frame *actualFrame)
 				break;
 			case BYT_PUSHVAR:
 				printd("--debugFunction-- Found pushvar\n");
-				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
+				auxvar = findVariable(actualFrame, op[(actualFrame->pc)+1]);
 				pushvar(actualFrame->datastack, auxvar);
 				actualFrame->pc = (actualFrame->pc)+2;
 				break;
@@ -316,8 +316,7 @@ void * runFunction(frame *actualFrame)
 				break;
 			case BYT_POPVAR:
 				printd("--debugFunction-- Found popvar\n");
-				auxvar = findVariable(actualFrame->variables, op[(actualFrame->pc)+1]);
-				popvar(actualFrame->datastack, auxvar);
+				popvar(actualFrame, actualFrame->datastack, op[(actualFrame->pc)+1]);
 				actualFrame->pc = (actualFrame->pc)+2;
 				break;
 			default:
@@ -340,7 +339,6 @@ frame * createFrame(fgs_state * fgs, char * function)
 	var * aux, * lastaux;
 	
 	print("--createFrame-- Allocating memory...\n");
-	result->variables = NULL;
 	
 	if(fgs->list == NULL)
 	{
@@ -367,23 +365,10 @@ frame * createFrame(fgs_state * fgs, char * function)
 	
 	for(i=0; i<result->func->var_count; i++)
 	{
-		lastaux = malloc(sizeof(var));
+		result->variables[i].id = i+1;
 	
-		lastaux->id = i+1;
-	
-		if(result->variables == NULL)
-		{
-			print("--createFrame-- First variable! Added.\n");
-			result->variables = lastaux;
-			aux = lastaux;
-		}
-		else
-		{
-			if(verbose)
-				fprintf(stdout, "--createFrame-- Added variable %d.\n", i+1);
-			aux->next = lastaux;
-			aux = lastaux;
-		}
+		if(verbose)
+			fprintf(stdout, "--createFrame-- Added variable %d.\n", i+1);
 	}
 	
 	result->datastack = StackInit(128);
@@ -392,7 +377,46 @@ frame * createFrame(fgs_state * fgs, char * function)
 	return result;
 }
 
-var *findVariable(var * variables, unsigned char id)
+var findVariable(frame * context, unsigned char id)
+{
+	return context->variables[id-1];
+}
+
+void freeString(frame * context, unsigned char id)
+{
+	if(context->variables[id-1].type == 2)
+	{
+		if(context->variables[id-1].value.literalS != NULL)
+		{
+			free(context->variables[id-1].value.literalS);
+			context->variables[id-1].value.literalS = NULL;
+		}
+	}
+}
+
+void setVariableI(frame * context, unsigned char id, int value)
+{
+	freeString(context, id);
+	context->variables[id-1].value.literalI = value;
+	context->variables[id-1].type = 0;
+}
+
+void setVariableF(frame * context, unsigned char id, float value)
+{
+	freeString(context, id);
+	context->variables[id-1].value.literalF = value;
+	context->variables[id-1].type = 1;
+}
+
+void setVariableS(frame * context, unsigned char id, char * value)
+{
+	freeString(context, id);
+	context->variables[id-1].value.literalS = malloc(strlen(value)+1);
+	strcpy(context->variables[id-1].value.literalS, value);
+	context->variables[id-1].type = 2;
+}
+
+/* var *findVariable(var * variables, unsigned char id)
 {
 	if(debug)
 		fprintf(stdout, "--findVariable-- Searching var %d.\n", id);
@@ -410,7 +434,7 @@ var *findVariable(var * variables, unsigned char id)
 	}
 	printd("--findVariable-- Not found :(\n");
 	return NULL;
-}
+} */
 
 int readStringBytes(char * source, char **destination)
 {

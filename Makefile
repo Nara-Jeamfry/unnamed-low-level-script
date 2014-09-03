@@ -1,5 +1,6 @@
 #General defines
 CC = gcc
+PROF = gprof
 LEX = flex
 YACC = bison
 LIB = -lc -lfl
@@ -22,8 +23,10 @@ INTTESTC = fgs_copia.c
 INTHCOPY = fgs_copia.h
 
 BIN = prac3.exe
-INTBIN = fgs.exe
-INTTEST = fgs_copia.exe
+INTTEST = fgs.exe
+INTTESTP = fgs_prof.exe
+
+PROFFLAGS = -b 
 
 LFLAGS = -n -o $(SRCL)
 YFLAGS = -d -v -o $(SRCY) --defines=$(YHEADER)
@@ -45,6 +48,11 @@ test : compile
 	
 compile : $(SRCL) $(SRCY)
 	$(CC) -o $(INTTEST) $(CFLAGS) $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTC) $(INTTESTC) $(LIBS)
+	
+profiling : $(SRCL) $(SRCY)
+	$(CC) -o $(INTTESTP) $(CFLAGS) -pg $(SRC) $(SRCL) $(SRCY) $(SRCSYM) $(INTC) $(INTTESTC) $(LIBS)
+	./$(INTTESTP)
+	$(PROF) $(INTTESTP) $(PROFFLAGS)
 	
 valgrind : compile
 	valgrind --tool=memcheck --leak-check=yes ./$(INTTEST)

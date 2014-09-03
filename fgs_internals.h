@@ -20,3 +20,6 @@ int fileAlreadyCompiled(fgsfile *, char * filename);
 void compileFile(fgs_state *, char * filename);
 unsigned char * parse_file(fgs_state *, char *);
 
+/* Frame Management */
+
+void freeString(frame * context, unsigned char id);

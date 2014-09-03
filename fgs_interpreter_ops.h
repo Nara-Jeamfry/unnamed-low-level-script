@@ -9,6 +9,7 @@ void pushf(stack *, float);
 
 void pushvar(stack *, var *);
 
+void popvar(frame *, stack *, unsigned char);
 void addi(stack *);
 void addf(stack *);
 void subi(stack *);

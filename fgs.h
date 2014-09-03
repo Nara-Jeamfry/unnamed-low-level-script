@@ -5,6 +5,8 @@
 #include "prac3.h"
 #include "fgs_stack.h"
 
+#ifndef STRUCTS
+#define STRUCTS
 typedef struct type_container {
 	char * name;
 	
@@ -28,7 +30,7 @@ typedef struct function_container {
 } function;
 
 typedef struct framerl {
-	var * variables;
+	var variables[255];
 	
 	char pc;
 	
@@ -61,6 +63,7 @@ typedef struct loaded_files {
 } bfgsfile;
 
 typedef struct fgs_state fgs_state;
+#endif
 
 #ifndef VERBOSE
 #define VERBOSE
@@ -72,6 +75,8 @@ char verbose;
 char debug;
 #endif
 
+#ifndef FGS_API
+#define FGS_API
 /**
  *	This global var saves all the functions loaded by the parser.
  */
@@ -82,7 +87,11 @@ void destroy_context(fgs_state *);
 
 function *findFunction(char, functions *);
 function *findFunctionByName(char *, functions *);
-var *findVariable(var *, unsigned char);
+
+void setVariableI(frame *, unsigned char id, int value);
+void setVariableF(frame *, unsigned char id, float value);
+void setVariableS(frame *, unsigned char id, char * value);
+var findVariable(frame *, unsigned char);
 
 frame * createFrame(fgs_state *, char *);
 
@@ -102,3 +111,4 @@ void printd(char *);
 FILE * open_file(char *);
 int read_file(fgs_state *, unsigned char *);
 void call_function();
+#endif

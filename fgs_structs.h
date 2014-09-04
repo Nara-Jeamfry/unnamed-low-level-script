@@ -1,5 +1,8 @@
-#ifndef STRUCTS
-#define STRUCTS
+#ifndef FGS_STRUCTS
+#define FGS_STRUCTS
+
+typedef struct fgs_state fgs_state;
+
 typedef struct type_container {
 	char * name;
 	
@@ -35,8 +38,22 @@ typedef struct framerl {
 	char * ops;
 } frame;
 
+typedef struct cfunction_container
+{
+	char * name;
+
+	int (* pointer)(fgs_state *);
+} cfunction;
+
 typedef struct function_list {
-	function *value;
+	/** 
+		0 for a FGS function, 1 for a C function.
+	*/
+	int type;
+	union function_union {
+		function *value;
+		cfunction *cvalue;
+	} value;
 	struct function_list *next;
 } functions;
 
@@ -56,5 +73,4 @@ typedef struct loaded_files {
 	struct loaded_files * next;
 } bfgsfile;
 
-typedef struct fgs_state fgs_state;
 #endif

@@ -1,4 +1,4 @@
-#include "prac3.h"
+#include "fgs_comp.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -103,7 +103,7 @@ void cleanMemory()
 
 C3A_value *tempLocation()
 {
-	C3A_value *aux = malloc(sizeof(C3A_value));
+	C3A_value *aux = (C3A_value *)malloc(sizeof(C3A_value));
 	aux->type = 0;
 	aux->value.tempID = dataOffset++;
 	
@@ -112,26 +112,26 @@ C3A_value *tempLocation()
 	if(!existing_var)
 	{
 		fprintf(getDebugFile(), "Nova variable\n");
-		C3A_value_container *new = malloc(sizeof(C3A_value_container));
-		new->value = aux;
-		new->id = localOffset++;
-		char *auxName = malloc(sizeof(char)*14);
+		C3A_value_container *newVar = (C3A_value_container *)malloc(sizeof(C3A_value_container));
+		newVar->value = aux;
+		newVar->id = localOffset++;
+		char *auxName = (char *)malloc(sizeof(char)*14);
 		sprintf(auxName, "$t%d", aux->value.tempID);
-		new->name = auxName;
-		new->next = NULL;
+		newVar->name = auxName;
+		newVar->next = NULL;
 		
 		if(firstLocal == NULL)
 		{
-			firstLocal = new;
-			lastLocal = new;
+			firstLocal = newVar;
+			lastLocal = newVar;
 		}
 		else
 		{
-			lastLocal->next = new;
-			lastLocal = new;
+			lastLocal->next = newVar;
+			lastLocal = newVar;
 		}
 		
-		aux->container = new;
+		aux->container = newVar;
 	}
 	else
 	{
@@ -143,7 +143,7 @@ C3A_value *tempLocation()
 
 C3A_value *varLocation(char * identifier)
 {
-	C3A_value *aux = malloc(sizeof(C3A_value));
+	C3A_value *aux = (C3A_value *)malloc(sizeof(C3A_value));
 	aux->value.varName = identifier;
 	aux->type = 1;
 		
@@ -152,24 +152,24 @@ C3A_value *varLocation(char * identifier)
 	if(!existing_var)
 	{
 		fprintf(getDebugFile(), "Nova variable\n");
-		C3A_value_container *new = malloc(sizeof(C3A_value_container));
-		new->value = aux;
-		new->id = localOffset++;
-		new->name = identifier;
-		new->next = NULL;
+		C3A_value_container *newVar = (C3A_value_container *)malloc(sizeof(C3A_value_container));
+		newVar->value = aux;
+		newVar->id = localOffset++;
+		newVar->name = identifier;
+		newVar->next = NULL;
 		
 		if(firstLocal == NULL)
 		{
-			firstLocal = new;
-			lastLocal = new;
+			firstLocal = newVar;
+			lastLocal = newVar;
 		}
 		else
 		{
-			lastLocal->next = new;
-			lastLocal = new;
+			lastLocal->next = newVar;
+			lastLocal = newVar;
 		}
 		
-		aux->container = new;
+		aux->container = newVar;
 	}
 	else
 	{
@@ -181,7 +181,7 @@ C3A_value *varLocation(char * identifier)
 
 C3A_value *litLocationInt(int i)
 {
-	C3A_value *aux = malloc(sizeof(C3A_value));
+	C3A_value *aux = (C3A_value *)malloc(sizeof(C3A_value));
 	aux->value.literalI = i;
 	aux->type = 2;
 	codeOffset+=3;
@@ -190,7 +190,7 @@ C3A_value *litLocationInt(int i)
 
 C3A_value *litLocationFloat(float f)
 {
-	C3A_value *aux = malloc(sizeof(C3A_value));
+	C3A_value *aux = (C3A_value *)malloc(sizeof(C3A_value));
 	aux->value.literalF = f;
 	aux->type = 3;
 	codeOffset+=3;
@@ -199,16 +199,17 @@ C3A_value *litLocationFloat(float f)
 
 C3A_value *litLocationString(char *word)
 {
-	C3A_value *aux = malloc(sizeof(C3A_value));
-	aux->value.literalS = word;
+	C3A_value *aux = (C3A_value *)malloc(sizeof(C3A_value));
+	aux->value.literalS = (char *)malloc(strlen(word));
+	strcpy(aux->value.literalS, word);
 	aux->type = 4;
-	codeOffset+=strlen(word);
+	codeOffset+=strlen(aux->value.literalS);
 	return aux;
 }
 
 void addType(char * typeName)
 {
-	C3A_value *type = malloc(sizeof(C3A_value));
+	C3A_value *type = (C3A_value *)malloc(sizeof(C3A_value));
 	type->value.type = typeName;
 	type->type = 5;
 	
@@ -217,24 +218,24 @@ void addType(char * typeName)
 	if(!existing_type)
 	{
 		fprintf(getDebugFile(), "Nova variable\n");
-		C3A_value_container *new = malloc(sizeof(C3A_value_container));
-		new->value = type;
+		C3A_value_container *newVar = (C3A_value_container *)malloc(sizeof(C3A_value_container));
+		newVar->value = type;
 		typeOffset++;
-		new->name = typeName;
-		new->next = NULL;
+		newVar->name = typeName;
+		newVar->next = NULL;
 		
 		if(firstType == NULL)
 		{
-			firstType = new;
-			lastType = new;
+			firstType = newVar;
+			lastType = newVar;
 		}
 		else
 		{
-			lastType->next = new;
-			lastType = new;
+			lastType->next = newVar;
+			lastType = newVar;
 		}
 		
-		type->container = new;
+		type->container = newVar;
 	}
 	else
 	{
@@ -244,7 +245,7 @@ void addType(char * typeName)
 
 bytecode_entry *gen_code()
 {
-	bytecode_entry* newQuad = malloc(sizeof(bytecode_entry));
+	bytecode_entry* newQuad = (bytecode_entry *)malloc(sizeof(bytecode_entry));
 	newQuad->gotoL = -1;
 	newQuad->next = NULL;
 	if(codeStart == NULL)
@@ -263,7 +264,7 @@ bytecode_entry *gen_code()
 
 bytecode_entry *gen_code_op(INST_SET op)
 {
-	bytecode_entry* newQuad = malloc(sizeof(bytecode_entry));
+	bytecode_entry* newQuad = (bytecode_entry *)malloc(sizeof(bytecode_entry));
 	newQuad->op = op;
 	newQuad->gotoL = -1;
 	newQuad->next = NULL;
@@ -293,6 +294,10 @@ bytecode_entry *gen_code_op(INST_SET op)
 			fprintf(getDebugFile(), "Added call at code_offset %d\n", codeOffset);
 			codeOffset+=CALL_OFFSET;
 			break;
+		case INPUT_PARAM:
+			fprintf(getDebugFile(), "Added input_param at code_offset %d\n", codeOffset);
+			codeOffset+=INPUT_PARAM_OFFSET;
+			break;
 		case ASSIGNMENT:
 			fprintf(getDebugFile(), "Added assignment at code_offset %d\n", codeOffset);
 			codeOffset+=ASSIGNMENT_OFFSET;
@@ -304,6 +309,14 @@ bytecode_entry *gen_code_op(INST_SET op)
 		case ASSIGNMENT_OP:
 			fprintf(getDebugFile(), "Added operated assignment at code_offset %d\n", codeOffset);
 			codeOffset+=ASSIGNMENTOP_OFFSET;
+			break;
+		case RETURN_OP:
+			fprintf(getDebugFile(), "Added return at code_offset %d\n", codeOffset);
+			codeOffset+=RETURN_OFFSET;
+			break;
+		case HALT:
+			fprintf(getDebugFile(), "Added halt at code_offset %d\n", codeOffset);
+			codeOffset+=HALT_OFFSET;
 			break;
 		default:
 			fprintf(getDebugFile(), "Added op at code_offset %d\n", codeOffset);
@@ -1087,6 +1100,7 @@ char *printOp(bytecode_entry *op, int *lineNumber, char * result)
 			sprintf(result, "%X: INPUT_PARAM\n%X: #%s", (*lineNumber),
 											(*lineNumber)+1,
 											printC3AVal(op->val1, &auxlines));
+			(*lineNumber)+=INPUT_PARAM_OFFSET;
 			return result;
 		break;
 		case RETURN_OP:

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "fgs_stack.h"
-#include "fgs.h"
+#include "fgs_internals.h"
 
 #ifndef VERBOSE
 #define VERBOSE
@@ -21,7 +21,7 @@ void memError(char * funct)
 
 void pushi(stack * st, int value)
 {
-	stacke * aux1 = malloc(sizeof(stacke));
+	stacke * aux1 = (stacke *)malloc(sizeof(stacke));
 	
 	if(!aux1)
 	{
@@ -36,7 +36,7 @@ void pushi(stack * st, int value)
 
 void pushf(stack * st, float value)
 {
-	stacke * aux1 = malloc(sizeof(stacke));
+	stacke * aux1 = (stacke *)malloc(sizeof(stacke));
 	
 	if(!aux1)
 	{
@@ -51,7 +51,7 @@ void pushf(stack * st, float value)
 
 void pushs(stack * st, char * value)
 {
-	stacke * aux1 = malloc(sizeof(stacke));
+	stacke * aux1 = (stacke *)malloc(sizeof(stacke));
 	
 	if(!aux1)
 	{
@@ -87,7 +87,7 @@ void pushvar(stack * st, var variable)
 
 void popvar(frame * f, stack * st, unsigned char variable)
 {
-	stacke * aux = malloc(sizeof(stacke));
+	stacke * aux = (stacke *)malloc(sizeof(stacke));
 	int stack_type = StackType(st);
 	
 	if(stack_type == 0)
@@ -162,7 +162,7 @@ void operate(stack * st, int type)
 			aux2->value.literalF /= aux1->value.literalF;
 			break;
 		case 8:
-			resultString = malloc(strlen(aux2->value.literalS)+strlen(aux1->value.literalS)+1);
+			resultString = (char *)malloc(strlen(aux2->value.literalS)+strlen(aux1->value.literalS)+1);
 			strcpy(resultString, aux2->value.literalS);
 			strcat(resultString, aux1->value.literalS);
 			free(aux2->value.literalS);
@@ -262,8 +262,8 @@ int comp_generic(stack * st, int type)
 	stacke * aux1, * aux2;
 	int result;
 
-	aux1 = malloc(sizeof(stacke));
-	aux2 = malloc(sizeof(stacke));
+	aux1 = (stacke *)malloc(sizeof(stacke));
+	aux2 = (stacke *)malloc(sizeof(stacke));
 
 	if(aux1 == NULL || aux2 == NULL)
 	{

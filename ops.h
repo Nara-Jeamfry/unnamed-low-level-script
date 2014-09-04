@@ -47,5 +47,6 @@
 #define IF_OP_OFFSET 7
 #define CALL_OFFSET 2
 #define HALT_OFFSET 1
+#define INPUT_PARAM_OFFSET 2
 
 #endif

@@ -6,7 +6,6 @@
 
 int read_file(fgs_state * fgs, unsigned char * bytecode)
 {
-	printf("OJO\n");
 	/* Check the header */
 	char header[13] = { 'g', 'a', 'm', 'e', '_', 's', 'c', 'r', 'i', 'p', 't', 3, 0 };
 	if(memcmp(bytecode,header, 13))
@@ -39,7 +38,7 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 	
 	for(i=0; i<function_count; i++)
 	{
-		actual = malloc(sizeof(function));
+		actual = (function *)malloc(sizeof(function));
 		
 		/* Let's retrieve the name */
 		if(verbose)
@@ -59,7 +58,7 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 		/* This reads all the types names */
 		for(j=0; j<type_count; j++)
 		{
-			types = malloc(sizeof(type));
+			types = (type *)malloc(sizeof(type));
 			if(auxtype)
 			{
 				auxtype->next = types;
@@ -85,8 +84,8 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 			fprintf(stdout, "%.2X: Funcio %d: %s\n", offset-1, actual->id, actual->name);
 		function_names[actual->id-1] = actual->name;
 		
-		func_container = malloc(sizeof(functions));
-		func_container->value = actual;
+		func_container = (functions *)malloc(sizeof(functions));
+		func_container->value.value = actual;
 		func_container->next = NULL;
 		
 		add_function(fgs, func_container);
@@ -116,121 +115,121 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 					offset+=readStringBytes((unsigned char *)(bytecode+offset), &auxString);
 					if(verbose)
 					{
-						fprintf(stdout, "%X: call %s\n", offset-3-line, auxString);
+						fprintf(stdout, "%X: call %s\n", offset-2-line, auxString);
 					}
 					free(auxString);
 					auxString = NULL;
 					break;
 				case BYT_HALR:
 					if(verbose)
-						printf("%X: return %d\n", offset-3-line, bytecode[offset]);
+						printf("%X: return %d\n", offset-2-line, bytecode[offset]);
 						offset++;
 					break;
 				case BYT_GOTO:
 					if(verbose)
-						fprintf(stdout, "%X: goto %X\n", offset-3-line, bytecode[offset]);
+						fprintf(stdout, "%X: goto %X\n", offset-2-line, bytecode[offset]);
 					offset++;
 					break;
 				case BYT_PUSHVAR:
 					if(verbose)
-						fprintf(stdout, "%X: pushvar %d\n", offset-3-line, bytecode[offset]);
+						fprintf(stdout, "%X: pushvar %d\n", offset-2-line, bytecode[offset]);
 					offset++;
 					break;
 				case BYT_PUSHI:
 					if(verbose)
-						fprintf(stdout, "%X: pushi %d\n", offset-3-line, *(int *)&bytecode[offset]);
+						fprintf(stdout, "%X: pushi %d\n", offset-2-line, *(int *)&bytecode[offset]);
 					offset+=4;
 					break;
 				case BYT_PUSHF:
 					if(verbose)
-						fprintf(stdout, "%X: pushf %f\n", offset-3-line, *(float *)&bytecode[offset]);
+						fprintf(stdout, "%X: pushf %f\n", offset-2-line, *(float *)&bytecode[offset]);
 					offset+=4;
 					break;
 				case BYT_PUSHS:
 					offset+=readStringBytes((unsigned char *)(bytecode+offset), &(auxString));
 					if(verbose)
 					{
-						fprintf(stdout, "%X: pushs \"%s\"\n", offset-3-line, auxString);
+						fprintf(stdout, "%X: pushs \"%s\"\n", offset-2-line, auxString);
 					}
 					free(auxString);
 					auxString=NULL;
 					break;
 				case BYT_POPVAR:
 					if(verbose)
-						fprintf(stdout, "%X: pop %d\n", offset-3-line, bytecode[offset]);
+						fprintf(stdout, "%X: pop %d\n", offset-2-line, bytecode[offset]);
 					offset++;
 					break;
 				case BYT_I2S:
 					if(verbose)
-						fprintf(stdout, "%X: i2s\n", offset-3-line);
+						fprintf(stdout, "%X: i2s\n", offset-2-line);
 					break;
 				case BYT_ADDI:
 					if(verbose)
-						fprintf(stdout, "%X: addi\n", offset-3-line);
+						fprintf(stdout, "%X: addi\n", offset-2-line);
 					break;
 				case BYT_SUBI:
 					if(verbose)
-						fprintf(stdout, "%X: subi\n", offset-3-line);
+						fprintf(stdout, "%X: subi\n", offset-2-line);
 					break;
 				case BYT_MULI:
 					if(verbose)
-						fprintf(stdout, "%X: muli\n", offset-3-line);
+						fprintf(stdout, "%X: muli\n", offset-2-line);
 					break;
 				case BYT_DIVI:
 					if(verbose)
-						fprintf(stdout, "%X: divi\n", offset-3-line);
+						fprintf(stdout, "%X: divi\n", offset-2-line);
 					break;
 				case BYT_ADDF:
 					if(verbose)
-						fprintf(stdout, "%X: addf\n", offset-3-line);
+						fprintf(stdout, "%X: addf\n", offset-2-line);
 					break;
 				case BYT_SUBF:
 					if(verbose)
-						fprintf(stdout, "%X: subf\n", offset-3-line);
+						fprintf(stdout, "%X: subf\n", offset-2-line);
 					break;
 				case BYT_MULF:
 					if(verbose)
-						fprintf(stdout, "%X: mulf\n", offset-3-line);
+						fprintf(stdout, "%X: mulf\n", offset-2-line);
 					break;
 				case BYT_DIVF:
 					if(verbose)
-						fprintf(stdout, "%X: divf\n", offset-3-line);
+						fprintf(stdout, "%X: divf\n", offset-2-line);
 					break;
 				case BYT_ADDS:
 					if(verbose)
-						fprintf(stdout, "%X: adds\n", offset-3-line);
+						fprintf(stdout, "%X: adds\n", offset-2-line);
 					break;
 				case BYT_HALT:
 					if(verbose)
-						fprintf(stdout, "%X: return\n", offset-3-line);
+						fprintf(stdout, "%X: return\n", offset-2-line);
 					break;
 				case BYT_EQ:
 					if(verbose)
-						fprintf(stdout, "%X: eq\n", offset-3-line);
+						fprintf(stdout, "%X: eq\n", offset-2-line);
 					break;
 				case BYT_NEQ:
 					if(verbose)
-						fprintf(stdout, "%X: neq\n", offset-3-line);
+						fprintf(stdout, "%X: neq\n", offset-2-line);
 					break;
 				case BYT_LTI:
 					if(verbose)
-						fprintf(stdout, "%X: lti\n", offset-3-line);
+						fprintf(stdout, "%X: lti\n", offset-2-line);
 					break;
 				case BYT_LEI:
 					if(verbose)
-						fprintf(stdout, "%X: lei\n", offset-3-line);
+						fprintf(stdout, "%X: lei\n", offset-2-line);
 					break;
 				case BYT_GTI:
 					if(verbose)
-						fprintf(stdout, "%X: gti\n", offset-3-line);
+						fprintf(stdout, "%X: gti\n", offset-2-line);
 					break;
 				case BYT_GEI:
 					if(verbose)
-						fprintf(stdout, "%X: gei\n", offset-3-line);
+						fprintf(stdout, "%X: gei\n", offset-2-line);
 					break;
 				default:
 					if(verbose)
-						fprintf(stdout, "%X: Unknown op %X\n", offset-3-line, op);
+						fprintf(stdout, "%X: Unknown op %X\n", offset-2-line, op);
 			}
 		}
 		actual->end = (unsigned char *) bytecode+offset;

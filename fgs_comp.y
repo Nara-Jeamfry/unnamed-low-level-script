@@ -1,6 +1,6 @@
 %{
 
-#include "prac3.h"
+#include "fgs_comp.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -37,7 +37,7 @@ bytecode_entry * aux;
 %type <literal> boolean_expr or_expr and_expr not_expr boolean
 %type <variable> name
 %type <marker> if_expr for_expr while_expr or and while do done separator start_else else
-%type <statement> programa conditional ordre loop function_call params param_list block 
+%type <statement> programa conditional ordre loop function_call params param_list block parameter_spec
 %type <error>  assign error_assign
 
 %%
@@ -70,34 +70,60 @@ params : OPEN_PARENTH CLOSE_PARENTH {
 		yyerror("Unexpected parameter list.");
 	}
 
-param_list
-	: param_list ID name {
-		addType($2.identifier);
-		
-		op = INPUT_PARAM;
-		aux = gen_code_op(op);
-		aux->val1 = varLocation($3.identifier);
-				
-		storeSym($3);
-		
-		fprintf(getDebugFile(), "Line %d: Loading variable %s from type %s.\n", yylineno, $3.identifier, $2.identifier);
-	
-		$$=NULL;
-		
-	}
-	| ID name {
+parameter_spec
+	: ID name {
 		addType($1.identifier);
 		
 		op = INPUT_PARAM;
 		aux = gen_code_op(op);
 		aux->val1 = varLocation($2.identifier);
+		aux->val1->type = 4;
 				
 		storeSym($2);
 		
 		fprintf(getDebugFile(), "Line %d: Loading variable %s from type %s.\n", yylineno, $2.identifier, $1.identifier);
 	
-		$$=NULL;
+	}
+	| INTEGER name {
+		op = INPUT_PARAM;
+		aux = gen_code_op(op);
+		aux->val1 = varLocation($2.identifier);
+		aux->val1->type = INTT;
+				
+		storeSym($2);
 		
+		fprintf(getDebugFile(), "Line %d: Loading variable %s from type integer.\n", yylineno, $2.identifier);
+	
+	}
+	| FLOAT name {
+		op = INPUT_PARAM;
+		aux = gen_code_op(op);
+		aux->val1 = varLocation($2.identifier);
+		aux->val1->type = FLOATT;
+				
+		storeSym($2);
+		
+		fprintf(getDebugFile(), "Line %d: Loading variable %s from type float.\n", yylineno, $2.identifier);
+	
+	}
+	| STRING name {
+		op = INPUT_PARAM;
+		aux = gen_code_op(op);
+		aux->val1 = varLocation($2.identifier);
+		aux->val1->type = STRINGT;
+				
+		storeSym($2);
+		
+		fprintf(getDebugFile(), "Line %d: Loading variable %s from type string.\n", yylineno, $2.identifier);
+	
+	}
+
+param_list
+	: param_list parameter_spec {
+		$$=NULL;
+	}
+	| parameter_spec {
+		$$=NULL;
 	}
 	
 separator

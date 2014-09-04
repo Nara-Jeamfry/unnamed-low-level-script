@@ -3,8 +3,8 @@
 %option noinput
 %{
 
-#include "prac3.h"
-#include "prac3y.h"
+#include "fgs_comp.h"
+#include "fgs_compy.h"
 #include <stdio.h>
 
 extern int yylineno;

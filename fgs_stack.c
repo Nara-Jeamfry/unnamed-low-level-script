@@ -4,7 +4,7 @@
 
 stack * StackInit(int size)
 {
-	stack * result = malloc(sizeof(stack));
+	stack * result = (stack *)malloc(sizeof(stack));
 	
 	result->contents = NULL;
 	result->top = -1;
@@ -56,7 +56,7 @@ int StackPushI(stack * st, stacke * elem)
 			printf("UNIMPLEMENTED (Push of incorrect type).\n");
 			exit(6);
 		}
-		st->contents = malloc(sizeof(stacke));
+		st->contents = (stacke *)malloc(sizeof(stacke));
 
 		if(st->contents == NULL)
 		{
@@ -92,7 +92,7 @@ int StackPushF(stack * st, stacke * elem)
 			printf("UNIMPLEMENTED (Push of incorrect type).\n");
 			exit(6);
 		}
-		st->contents = malloc(sizeof(stacke));
+		st->contents = (stacke *)malloc(sizeof(stacke));
 
 		if(st->contents == NULL)
 		{
@@ -125,14 +125,14 @@ int StackPushS(stack * st, stacke * elem)
 			exit(6);
 		}
 		
-		st->contents = malloc(sizeof(stacke));
+		st->contents = (stacke *)malloc(sizeof(stacke));
 		if(st->contents == NULL)
 		{
 			printf("Cannot allocate memory. Exiting...\n");
 			exit(3);
 		}
 		
-		st->contents->value.literalS = malloc(strlen(elem->value.literalS)+1);
+		st->contents->value.literalS = (char *)malloc(strlen(elem->value.literalS)+1);
 		strcpy(st->contents->value.literalS, elem->value.literalS);
 		st->contents->type = 2;
 		st->contents->last = element;

@@ -1,10 +1,12 @@
-/*
-	Fast Game Scripting
-	fgs.c
-	Purpose: implements the main FastGameScript API.
+/**	\file fgs.c
+	Implements the main FastGameScript API.
 	
-	@author Marc López Baz
-	@version 0.5 01/09/2014
+	This file holds the code that allows any C program to compile dynamically a .fgs script file, 
+	run functions from it, and operate with the input and return values for these functions.
+
+	\author Marc López Baz
+	\version 0.6 
+	\date 04/09/2014
 */ 
 #include <stdio.h>
 #include <string.h>
@@ -12,28 +14,29 @@
 #include <unistd.h>
 #include "fgs.h"
 #include "fgs_internals.h"
-#include "prac3.h"
 
 struct fgs_state {
 	fgsfile *compiled_files;
 	
 	bfgsfile *loaded_files;
 	
+	stack *mainstack;
+
 	functions *list;
 	functions *tail;
 };
 
 /* ----------------CODE---------------- */
 
-/** Initializes the FGS context, enabling all the functions.
-	start_context
-	
-	This method initializes the context of the FGS interpreter.
+/** 
+	This method initializes the context of the FGS interpreter, declaring all the values as NULL, and
+	allocating memory for all the needed information. The allocated memory is not freed, so a fgs_destroy_context()
+	call must be made after this fgs_start_context call to deallocate the unneeded memory.
 */
 	
-fgs_state *start_context()
+fgs_state *fgs_start_context()
 {
-	fgs_state *state = malloc(sizeof(fgs_state));
+	fgs_state *state = (fgs_state *)malloc(sizeof(fgs_state));
 	
 	initialize_state(state);
 	
@@ -46,6 +49,7 @@ void initialize_state(fgs_state *fgs)
 	fgs->loaded_files = NULL;
 	fgs->list = NULL;
 	fgs->tail = NULL;
+	fgs->mainstack = StackInit(255);
 }
 
 void clean_state(fgs_state *fgs)
@@ -73,6 +77,8 @@ void clean_state(fgs_state *fgs)
 		free(codes);
 		codes = auxbfgs;
 	}
+
+	StackDestroy(fgs->mainstack);
 }
 
 void destroy_context(fgs_state *fgs)
@@ -112,7 +118,7 @@ void add_function(fgs_state * fgs, functions * f)
 		fgs->tail = f;
 		return;
 	}
-	if(!findFunctionByName(f->value->name, fgs->list))
+	if(!findFunctionByName(f->value.value->name, fgs->list))
 	{
 		fgs->tail->next = f;
 		fgs->tail = f;
@@ -124,7 +130,7 @@ functions * fgs_get_list(fgs_state * fgs)
 	return fgs->list;
 }
 
-int add_file_to_state(fgs_state *fgs, char * name)
+int fgs_load_script(fgs_state *fgs, char * name)
 {	
 	unsigned char * byteCode;
 	char * bytefile;
@@ -149,7 +155,7 @@ int add_file_to_state(fgs_state *fgs, char * name)
 	
 	add_loaded_file(fgs, bytefile, byteCode);
 	
-	if(read_file(fgs, byteCode))
+	if(!read_file(fgs, byteCode))
 	{
 		printf("Could not read file.\n");
 	}
@@ -157,6 +163,72 @@ int add_file_to_state(fgs_state *fgs, char * name)
 	
 	free(bytefile); /* we have to free the name (changeSourceToByteName can't do it for us) */
 	return 1;
+}
+
+int fgs_call_function(fgs_state * fgs, char * function_name)
+{
+	frame * f = createFrame(fgs, function_name);
+	int result;
+
+	if(f == NULL)
+	{
+		if(verbose)
+			printf("Could not find function %s.", function_name);
+		free(f);
+		return 0;
+	}
+
+	result = runFunction(f);
+
+	free(f);
+	return result;
+}
+
+void push_valueI(fgs_state * fgs, int value)
+{
+	pushi(fgs->mainstack, value);
+}
+
+void push_valueF(fgs_state * fgs, float value)
+{
+	pushf(fgs->mainstack, value);
+}
+
+void push_valueS(fgs_state * fgs, char *value)
+{
+	pushs(fgs->mainstack, value);
+}
+
+int pop_valueI(fgs_state * fgs)
+{
+	stacke * aux = (stacke *)malloc(sizeof(stacke));
+	StackPopI(fgs->mainstack, aux);
+
+	int result = aux->value.literalI;
+	
+	free(aux);
+	return result;
+}
+
+float pop_valueF(fgs_state * fgs)
+{
+	stacke * aux = (stacke *)malloc(sizeof(stacke));
+	StackPopF(fgs->mainstack, aux);
+
+	float result = aux->value.literalF;
+	
+	free(aux);
+	return result;
+}
+
+void pop_valueS(fgs_state * fgs, char ** destination)
+{
+	stacke * aux = (stacke *)malloc(sizeof(stacke));
+	StackPopS(fgs->mainstack, aux);
+
+	strcpy(*destination, aux->value.literalS);
+
+	free(aux);
 }
 
 /** Reads data from a FGS-ByteCode file.
@@ -173,64 +245,23 @@ int add_file_to_state(fgs_state *fgs, char * name)
 	\return A functions * data struct containing the existing functions 
 		and information about it.
 */
-/* functions * read_file_wotototo(fgs_state * fgs, unsigned char * fi)
-{
-	int offset = 13, i, j, auxNumber, line;
-	int function_count, type_count, var_count;
-	unsigned char op;
-	
-	function *actual;
-	function *aux;
-	functions * func_container = NULL;
-		
-	type * types = NULL, *auxtype = NULL;
-	char * auxString;
-	while(op != 0)
-	{
-		
-		
-		if(verbose)
-			fprintf(stdout, "Function %d ended at offset %X\n", i+1, offset-1);
-		
-	}
-	
-	if(verbose)
-		fprintf(stdout, "Hey! Estic interpretant l'arxiu! :)\n");
-	
-	return NULL;
-} */
-
-function *findFunction(char id, functions *list)
-{
-	char found = 0;
-	while(list && !found)
-	{
-		if(list->value->id == id)
-		{
-			found = 1;
-			return list->value;
-		}
-		list = list->next;
-	}
-	return NULL;
-}
 
 function *findFunctionByName(char * name, functions *list)
 {
 	char found = 0;
 	while(list && !found)
 	{
-		if(list->value != NULL && !strcmp(list->value->name, name))
+		if(list->value.value != NULL && !strcmp(list->value.value->name, name))
 		{
 			found = 1;
-			return list->value;
+			return list->value.value;
 		}
 		list = list->next;
 	}
 	return NULL;
 }
 
-void * runFunction(frame *actualFrame)
+int runFunction(frame *actualFrame)
 {
 	unsigned char * op = actualFrame->func->start;
 	char * auxText;
@@ -249,7 +280,8 @@ void * runFunction(frame *actualFrame)
 				break;
 			case BYT_HALR:
 				printd("--debugFunction-- Found return\n");
-				popvar(actualFrame, actualFrame->datastack, op[(actualFrame->pc)+1]);
+				auxvar = findVariable(actualFrame, op[(actualFrame->pc)+1]);
+				pushvar(actualFrame->datastack, auxvar);
 				op = actualFrame->func->end;
 				break;
 			case BYT_PUSHI:
@@ -336,13 +368,14 @@ void * runFunction(frame *actualFrame)
 	if(debug)
 		fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
 	printd("--debugFunction-- Found HALT!\n");
-	
-	return NULL;
+	print("--runFunction-- No problems found during execution.\n");
+
+	return 1;
 }
 
 frame * createFrame(fgs_state * fgs, char * function)
 {
-	frame * result = malloc(sizeof(frame));
+	frame * result = (frame *)malloc(sizeof(frame));
 	int i;
 	
 	print("--createFrame-- Allocating memory...\n");
@@ -378,7 +411,7 @@ frame * createFrame(fgs_state * fgs, char * function)
 			fprintf(stdout, "--createFrame-- Added variable %d.\n", i+1);
 	}
 	
-	result->datastack = StackInit(128);
+	result->datastack = fgs->mainstack;
 	print("--createFrame-- Stack reserved!\n");
 	
 	return result;
@@ -418,7 +451,7 @@ void setVariableF(frame * context, unsigned char id, float value)
 void setVariableS(frame * context, unsigned char id, char * value)
 {
 	freeString(context, id);
-	context->variables[id-1].value.literalS = malloc(strlen(value)+1);
+	context->variables[id-1].value.literalS = (char *)malloc(strlen(value)+1);
 	strcpy(context->variables[id-1].value.literalS, value);
 	context->variables[id-1].type = 2;
 }
@@ -449,7 +482,7 @@ int readStringBytes(unsigned char * source, char **destination)
 	
 	if(verbose) printf("--readStringBytes-- Allocating %d bytes...\n", length+1);
 	
-	*destination = malloc(sizeof(char)*length + 1);
+	*destination = (char *)malloc(sizeof(char)*length + 1);
 	
 	if(!*destination)
 	{

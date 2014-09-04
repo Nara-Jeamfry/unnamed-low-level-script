@@ -6,7 +6,7 @@
 
 int test;
 
-int testFunction(fgs_state * FGS, char * function)
+void testFunction(fgs_state * FGS, char * function)
 {
 	int i, result;
 	if(test)
@@ -34,15 +34,13 @@ int testFunction(fgs_state * FGS, char * function)
 
 void testFunctionI(fgs_state *FGS, char * function, int expect)
 {
-	int i, result;
+	int result;
 	if(test)
 		printf("Now, we're gonna try to load %s function\n", function);
 
-	for(i=0; i<1000; i++)
-	{
-		fgs_call_function(FGS, function);
-		result += pop_valueI(FGS);
-	}
+	
+	fgs_call_function(FGS, function);
+	result = pop_valueI(FGS);
 
 	if(result != expect)
 	{
@@ -63,7 +61,6 @@ int main(int argc, char **argv)
 	if(verbose)
 		fprintf(stdout, "Benvingut a l'intèrpret de FastGameScript!\n\n");
 
-	int result;
 	char c;
 	
 	while((c = getopt(argc, argv, "vgsdt")) != -1)
@@ -102,8 +99,6 @@ int main(int argc, char **argv)
 	
 	FGS = fgs_start_context();
 	
-	frame * basicFrame;
-	
 	if(test)
 		printf("--------------\n");
 
@@ -119,15 +114,18 @@ int main(int argc, char **argv)
 		
 
 
-	result +=testFunction(FGS, "prova_condicional_else");
-	result +=testFunction(FGS, "prova_condicional_if");
-	result +=testFunction(FGS, "prova_aritmetica_mul");
-	result +=testFunction(FGS, "prova_aritmetica_sum");
-	result +=testFunctionI(FGS, "prova_fibonacci", 514229);
-	/*result +=testFunction(FGS, "prova_condicional_if");
-	result +=testFunction(FGS, "prova_condicional_if");
-	result +=testFunction(FGS, "prova_condicional_if");
-	result +=testFunction(FGS, "prova_condicional_if");*/
+	testFunction(FGS, "prova_condicional_else");
+	testFunction(FGS, "prova_condicional_if");
+	testFunction(FGS, "prova_aritmetica_mul");
+	testFunction(FGS, "prova_aritmetica_sum");
+	push_valueI(FGS, 30);
+	testFunctionI(FGS, "prova_fibonacci", 514229);
+	push_valueF(FGS, 30.0f);
+	testFunctionI(FGS, "prova_fibonacci", 514229);
+	/*testFunction(FGS, "prova_condicional_if");
+	testFunction(FGS, "prova_condicional_if");
+	testFunction(FGS, "prova_condicional_if");
+	testFunction(FGS, "prova_condicional_if");*/
 	
 	destroy_context(FGS);
 	return 0;

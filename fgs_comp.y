@@ -89,7 +89,8 @@ parameter_spec
 		aux = gen_code_op(op);
 		aux->val1 = varLocation($2.identifier);
 		aux->val1->type = INTT;
-				
+		
+		$2.type = INTT;
 		storeSym($2);
 		
 		fprintf(getDebugFile(), "Line %d: Loading variable %s from type integer.\n", yylineno, $2.identifier);
@@ -101,6 +102,7 @@ parameter_spec
 		aux->val1 = varLocation($2.identifier);
 		aux->val1->type = FLOATT;
 				
+		$2.type = FLOATT;
 		storeSym($2);
 		
 		fprintf(getDebugFile(), "Line %d: Loading variable %s from type float.\n", yylineno, $2.identifier);
@@ -112,6 +114,7 @@ parameter_spec
 		aux->val1 = varLocation($2.identifier);
 		aux->val1->type = STRINGT;
 				
+		$2.type = STRINGT;
 		storeSym($2);
 		
 		fprintf(getDebugFile(), "Line %d: Loading variable %s from type string.\n", yylineno, $2.identifier);

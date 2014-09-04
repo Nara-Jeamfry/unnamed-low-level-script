@@ -1,0 +1,12 @@
+prova_condicional_else()
+{
+	a:=0;
+	if(a = 1)
+	{
+		return a;
+	}
+	else
+	{
+		return 0;
+	}
+}

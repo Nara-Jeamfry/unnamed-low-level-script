@@ -1,0 +1,11 @@
+prova_aritmetica_sum()
+{
+	a:=1;
+	b:=2;
+	a := a + b;
+	a := a - b;
+	if(a = 1)
+		return a;
+	else
+		return 0;
+}

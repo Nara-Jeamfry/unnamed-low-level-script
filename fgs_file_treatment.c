@@ -50,7 +50,7 @@ unsigned char * parse_file(fgs_state * fgs, char * filename)
 	return result;
 }
 
-void add_loaded_file(fgs_state * fgs, char * name, char * code)
+void add_loaded_file(fgs_state * fgs, char * name, unsigned char * code)
 {
 	time_t aux;
 	int found = 0;
@@ -146,7 +146,7 @@ void changeSourceToByteName(char ** dest, char * name)
 void compileFile(fgs_state *fgs, char * name)
 {
 	FILE * source;
-	char * pch, *output;
+	char *output;
 
 	if(verbose)
 		printf("--compileFile-- Checking if %s is already compiled...\n", name);
@@ -154,7 +154,7 @@ void compileFile(fgs_state *fgs, char * name)
 	if(fileAlreadyCompiled(fgs_get_files(fgs), name))
 	{
 		if(verbose)
-			printf("--compileFile-- File is up to date.\n\n", name);
+			printf("--compileFile-- File is up to date.\n\n");
 		return;
 	}
 	
@@ -244,7 +244,7 @@ void add_compiled_file(fgs_state *fgs, char *name)
 int fileAlreadyLoaded(bfgsfile *filestruct, char * name)
 {
 	bfgsfile *aux = filestruct;
-	time_t actual, compilation;
+	time_t compilation;
 	struct stat file_stat;
 	int found = 0;
 	
@@ -285,7 +285,7 @@ int fileAlreadyLoaded(bfgsfile *filestruct, char * name)
 int fileAlreadyCompiled(fgsfile *filestruct, char * name)
 {
 	fgsfile *aux = filestruct;
-	time_t actual, compilation;
+	time_t compilation;
 	struct stat file_stat;
 	int found = 0;
 	

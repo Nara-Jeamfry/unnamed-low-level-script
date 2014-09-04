@@ -1,4 +1,4 @@
-fibonacci( int n )
+fibonacci( ina n )
 {
 	x := 1;
 	y := 1;
@@ -15,7 +15,9 @@ fibonacci( int n )
 	x := 1;
 }
 
-suma(integer int)
+
+
+suma(integer ina)
 {
 	hola := "asdf";
 	hola := hola + 1;
@@ -23,7 +25,7 @@ suma(integer int)
 	{
 		hola := 1;
 	}
-	int := 3 + 4;
-	int := int + 1;
+	ina := 3 + 4;
+	ina := ina + 1;
 }
 

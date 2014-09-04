@@ -14,6 +14,5 @@ void printd(char * text)
 
 void printStatus(frame * fr)
 {
-	if(debug)
-		fprintf(stdout, "Actual status: %d elems on stack.\n\n", fr->datastack->top+1);
+	fprintf(stdout, "Actual status: %d elems on stack.\n\n", fr->datastack->top+1);
 }

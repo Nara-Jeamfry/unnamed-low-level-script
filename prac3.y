@@ -36,15 +36,17 @@ bytecode_entry * aux;
 %type <literal> boolean_expr or_expr and_expr not_expr boolean
 %type <variable> name
 %type <marker> if_expr for_expr while_expr or and while do done separator start_else else
-%type <statement> programa conditional ordre loop function_call params block
 %type <error>  assign long_error error_assign
+%type <statement> programa conditional ordre loop function_call params param_list block 
 
 %%
 
 all 
 	: all function {
+		printDebug("Next function.");
 	}
 	| function {
+		printDebug("Last function.");
 	}
 
 function 

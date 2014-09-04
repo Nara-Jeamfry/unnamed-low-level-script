@@ -60,7 +60,7 @@ void cleanOp(bytecode_entry * byt)
 void cleanFunctions()
 {
 	function_entry * aux;
-	printf("HOLAAAAAA?¿???? %d\n", firstFunction);
+	printf("HOLAAAAAA?¿????\n");
 	while(firstFunction)
 	{
 		printf("Cleaning function %s", firstFunction->identifier);
@@ -585,7 +585,7 @@ void writeStringBytes(FILE * fi, char * text)
 
 	char length = strlen(text);
 	
-	char i = 0;
+	int i = 0;
 	writeByte(fi, length);
 	while(i<length)
 	{
@@ -655,6 +655,9 @@ void printByteCode(FILE * fi)
 		}
 		
 		headerLength++;
+		fprintf(getDebugFile(), "Function count: %d\n", headerLength);
+		
+		headerLength++;
 		fprintf(getDebugFile(), "Function ID: %d\n", headerLength);
 		
 		section = section->next;
@@ -675,6 +678,8 @@ void printByteCode(FILE * fi)
 			
 			var = var->next;
 		} 
+		
+		writeByte(fi, section->localLength);
 		
 		writeByte(fi, ++functionID);
 		
@@ -714,11 +719,11 @@ void printByteCodeOp(FILE * fi, bytecode_entry *line, char length)
 	switch(line->op)
 	{
 		case HALT:
-			writeByte(fi, 0);
+			writeByte(fi, BYT_HALT);
 			break;
 		case CALL:
-			writeByte(fi, 0xFF);
-			writeByte(fi, 0xFF);
+			writeByte(fi, BYT_CALL);
+			writeStringBytes(fi, line->val1->value.literalS);
 			break;
 		case IF_OP:
 			printPushVar(fi, line->val1);
@@ -904,7 +909,7 @@ void printByteCodeVar(FILE * fi, C3A_value *var)
 
 void printGoto(FILE * fi, bytecode_entry *op)
 {
-	writeByte(fi, 01);
+	writeByte(fi, BYT_GOTO);
 	writeByte(fi, (char)op->gotoL/* +headerLength+opsLength */);
 }
 
@@ -1099,10 +1104,10 @@ char *printOp(bytecode_entry *op, int *lineNumber, char * result)
 			return result;
 		break;
 		case CALL:
-			sprintf(result, "%X: CALL\n%X: @%d", (*lineNumber), 
+			sprintf(result, "%X: CALL\n%X: @%s", (*lineNumber), 
 											(*lineNumber)+1, 
-											op->gotoL);
-			(*lineNumber)+=CALL_OFFSET;
+											printC3AVal(op->val1, &auxlines));
+			(*lineNumber)+=CALL_OFFSET + auxlines;
 			return result;
 		break;
 		case HALT:
@@ -1154,7 +1159,7 @@ char *printC3AVal(C3A_value *value, int *lineNumber)
 			sprintf(aux, "\"%s\"", value->value.literalS);
 			if(value->value.literalS == NULL)
 			{
-				return;
+				return NULL;
 			}
 			(*lineNumber)+=strlen(value->value.literalS)+1;
 			return aux;
@@ -1277,17 +1282,17 @@ char *printRelOp(REL_INST_SET relop)
 		case GEF:
 			return "GEF";
 		break;
-		case PUTI:
-			return "PUTI";
-		break;
-		case PUTF:
-			return "PUTF";
-		break;
 		default:
 			return NULL;
 		break;
 	}
 	return "HIHIHI";
+}
+
+void printDebug(const char *errlog)
+{
+	if(bisonverbose)
+		printf(errlog);
 }
 
 void printError(const char * formatted_message, char * error_text)

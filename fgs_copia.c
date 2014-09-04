@@ -49,9 +49,7 @@ int main(int argc, char **argv)
 	
 	FGS = start_context();
 	
-	FILE * file;
 	frame * basicFrame;
-	var input;
 	
 	for(i=0; i<100000; i++)
 	{
@@ -59,7 +57,7 @@ int main(int argc, char **argv)
 		/* code on add_file_to_state was here */
 		
 		add_file_to_state(FGS, name);
-		add_file_to_state(FGS, "wowo.fgs");
+		add_file_to_state(FGS, "test_string_concat.fgs");
 		
 		print("Now, we're gonna try to load fibonacci function\n");
 		basicFrame = createFrame(FGS, "fibonacci");
@@ -75,7 +73,7 @@ int main(int argc, char **argv)
 		setVariableI(basicFrame, 1, 30);
 		
 		if(verbose)
-			fprintf(stdout, "Now var n is: %d\n", basicFrame->variables[0].value);
+			fprintf(stdout, "Now var n is: %d\n", basicFrame->variables[0].value.literalI);
 		
 		print("HERE WE GO!\n");
 		runFunction(basicFrame);

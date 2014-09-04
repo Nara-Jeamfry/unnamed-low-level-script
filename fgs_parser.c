@@ -19,11 +19,10 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 	print("00: Found game_script at header\n");
 	
 	int offset = 13, i, j, auxNumber, line;
-	int function_count, type_count, var_count;
+	int function_count, type_count;
 	unsigned char op;
 	
 	function *actual;
-	function *aux;
 	functions * func_container = NULL;
 	
 	type * types = NULL, *auxtype = NULL;
@@ -45,7 +44,7 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 		/* Let's retrieve the name */
 		if(verbose)
 			fprintf(stdout, "-- Funcio %d\n", i+1);
-		auxNumber = readStringBytes((char *)(bytecode+offset), &(actual->name));
+		auxNumber = readStringBytes((unsigned char *)(bytecode+offset), &(actual->name));
 		if(verbose)
 			printf("%.2X: Name and lenght occupy %d bytes\n",offset, auxNumber); 
 		offset+=auxNumber;
@@ -65,7 +64,7 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 			{
 				auxtype->next = types;
 			}
-			auxNumber=readStringBytes((char *)(bytecode+offset), &(types->name));
+			auxNumber=readStringBytes((unsigned char *)(bytecode+offset), &(types->name));
 			if(verbose)
 					fprintf(stdout, "%.2X: Type %s\n", offset, types->name);
 			offset+=auxNumber;
@@ -76,8 +75,9 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 		types = NULL;
 		
 		/* This will read the var count, still unimplemented */
-		actual->var_count = 7;
-		
+		actual->var_count = bytecode[offset++];
+		if(verbose)
+			fprintf(stdout, "%.2X: Var count: %d\n", offset-1, actual->var_count);
 		
 		actual->id = bytecode[offset++];
 		/* And this reads the Function ID */
@@ -102,7 +102,7 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 		line = offset;
 		op = bytecode[offset++];
 		actual = findFunctionByName(function_names[op-1], fgs_get_list(fgs));
-		actual->start = bytecode+offset;
+		actual->start = (unsigned char *) bytecode+offset;
 		actual->offset = offset-2-line;
 		if(verbose)
 			fprintf(stdout, "Code for function %s, starting at %X:\n\n", actual->name, (unsigned char)actual->offset);
@@ -118,28 +118,28 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 					else
 						offset++;
 					break;
+				case BYT_GOTO:
+					if(verbose)
+						fprintf(stdout, "%X: goto %X\n", offset-3-line, bytecode[offset]);
+					offset++;
+					break;
 				case BYT_PUSHVAR:
 					if(verbose)
-						fprintf(stdout, "%X: pushvar %d\n", offset-3-line, bytecode[offset++]);
-					else
-						offset++;
+						fprintf(stdout, "%X: pushvar %d\n", offset-3-line, bytecode[offset]);
+					offset++;
 					break;
 				case BYT_PUSHI:
 					if(verbose)
-						fprintf(stdout, "%X: pushi %d\n", offset-3-line, *(int *)&bytecode[offset++]);
-					else
-						offset++;
-					offset+=3;
+						fprintf(stdout, "%X: pushi %d\n", offset-3-line, *(int *)&bytecode[offset]);
+					offset+=4;
 					break;
 				case BYT_PUSHF:
 					if(verbose)
-						fprintf(stdout, "%X: pushf %f\n", offset-3-line, *(float *)&bytecode[offset++]);
-					else
-						offset++;
-					offset+=3;
+						fprintf(stdout, "%X: pushf %f\n", offset-3-line, *(float *)&bytecode[offset]);
+					offset+=4;
 					break;
 				case BYT_PUSHS:
-					offset+=readStringBytes((char *)(bytecode+offset), &(auxString))-1;
+					offset+=readStringBytes((unsigned char *)(bytecode+offset), &(auxString));
 					if(verbose)
 					{
 						fprintf(stdout, "%X: pushs \"%s\"\n", offset-3-line, auxString);
@@ -149,9 +149,8 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 					break;
 				case BYT_POPVAR:
 					if(verbose)
-						fprintf(stdout, "%X: pop %d\n", offset-3-line, bytecode[offset++]);
-					else
-						offset++;
+						fprintf(stdout, "%X: pop %d\n", offset-3-line, bytecode[offset]);
+					offset++;
 					break;
 				case BYT_I2S:
 					if(verbose)
@@ -223,10 +222,11 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 					break;
 				default:
 					if(verbose)
-						fprintf(stdout, "%X: Unknown op %X\n", offset-2-line, op);
+						fprintf(stdout, "%X: Unknown op %X\n", offset-3-line, op);
 			}
 		}
+		actual->end = (unsigned char *) bytecode+offset;
 	}
 	
-	
+	return 1;
 }

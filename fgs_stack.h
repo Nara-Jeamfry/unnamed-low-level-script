@@ -43,6 +43,7 @@ char stackverbose;
 #ifndef STACK_METHODS
 #define STACK_METHODS
 stack * StackInit(int);
+void StackDestroy(stack *);
 
 /* StackPushX and StackPopX return 0 if all works correctly, !0 otherwise. */
 int StackPushI(stack *, stacke *);
@@ -51,6 +52,8 @@ int StackPushS(stack *, stacke *);
 int StackPopI(stack *, stacke *);
 int StackPopF(stack *, stacke *);
 int StackPopS(stack *, stacke *);
+
 char StackEmpty(stack *);
 char StackFull(stack *);
+int StackType(stack * st);
 #endif

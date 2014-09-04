@@ -2,7 +2,8 @@
 #define bytecode_ops
 
 #define BYT_HALT 0x00
-#define BYT_GOTO 0x01
+#define BYT_GOTO 0x02
+#define BYT_CALL 0x03
 
 #define BYT_PUSHVAR 0x10 /* 0x10 [var] - */
 #define BYT_PUSHI 0x11 /* 0x11 [int]/4bytes - */

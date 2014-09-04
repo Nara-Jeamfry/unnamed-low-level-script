@@ -30,7 +30,7 @@ PROFFLAGS = -b
 
 LFLAGS = -n -o $(SRCL)
 YFLAGS = -d -v -o $(SRCY) --defines=$(YHEADER)
-CFLAGS = -ansi -g
+CFLAGS = -ansi -g -Wall
 OTHERS = prac3y.h prac3y.tmp.output log.txt code.c3a output.byt *.stackdump *.bfgs
 
 FIBON = example_fibonacci_complexe.txt
@@ -44,6 +44,8 @@ EXEMPLE_ERRORS_FL = <prova_errors_fluxe.txt >output/output_exemple_errors_fl.txt
 all : compile
 
 test : compile
+	@echo Compilant...
+	@echo
 	./$(INTTEST)
 	
 compile : $(SRCL) $(SRCY)

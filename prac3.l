@@ -134,6 +134,10 @@ false		{
 				return LITERAL_BOOL;
 			}
 			
+return		{
+				return RETURN;
+			}
+			
 [&&]		{
 				return AND;
 			}
@@ -156,6 +160,18 @@ or			{
 			
 not			{
 				return NOT;
+			}
+			
+int			{
+				return INTEGER;
+			}
+			
+float		{
+				return FLOAT;
+			}
+		
+string		{
+				return STRING;
 			}
 			
 [0-9]+\.[0-9]+	{

@@ -4,66 +4,8 @@
 #include "ops.h"
 #include "prac3.h"
 #include "fgs_stack.h"
-
-#ifndef STRUCTS
-#define STRUCTS
-typedef struct type_container {
-	char * name;
-	
-	struct type_container* next;
-} type;
-
-typedef struct function_container {
-
-	char id;
-	
-	char * name;
-
-	int type_count;
-	int var_count;
-	
-	type *types;
-	
-	char * start;
-	unsigned char offset;
-
-} function;
-
-typedef struct framerl {
-	var variables[255];
-	
-	char pc;
-	
-	function * func;
-	
-	stack * datastack;
-	
-	char * ops;
-} frame;
-
-typedef struct function_list {
-	function *value;
-	struct function_list *next;
-} functions;
-
-typedef struct compiled_files {
-	time_t compilation_time;
-	char * name;
-
-	struct compiled_files * next;
-} fgsfile;
-
-typedef struct loaded_files {
-	time_t load_time;
-	char * name;
-	
-	char * code;
-	
-	struct loaded_files * next;
-} bfgsfile;
-
-typedef struct fgs_state fgs_state;
-#endif
+#include "fgs_interpreter_ops.h"
+#include "fgs_structs.h"
 
 #ifndef VERBOSE
 #define VERBOSE
@@ -77,13 +19,13 @@ char debug;
 
 #ifndef FGS_API
 #define FGS_API
-/**
- *	This global var saves all the functions loaded by the parser.
- */
-functions * globalFunctions;
 
 fgs_state *start_context();
 void destroy_context(fgs_state *);
+int add_file_to_state(fgs_state *, char *);
+int fileAlreadyLoaded(bfgsfile *filestruct, char * name);
+void add_loaded_file(fgs_state * fgs, char * name, unsigned char * code);
+
 
 function *findFunction(char, functions *);
 function *findFunctionByName(char *, functions *);
@@ -103,7 +45,7 @@ void * runFunction(frame *);
 /* Returns string length as to skip it from the code (counting THE BYTE FOR THE LENGTH too).
 
    Keep in mind that this function allocates memory that should be deallocated afterwards. */
-int readStringBytes(char * source, char **destination);
+int readStringBytes(unsigned char * source, char **destination);
 
 void print(char *);
 void printd(char *);

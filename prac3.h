@@ -69,9 +69,7 @@ typedef enum {
 	LTF,
 	LEF,
 	GTF,
-	GEF,
-	PUTI,
-	PUTF
+	GEF
 } REL_INST_SET;
 
 typedef struct C3A_val {
@@ -167,6 +165,8 @@ typedef union yytype {
 		BP_list *nextList;
 	} marker;
 	
+	int type; /**< defines a basic type */
+	
 	BP_list *statement;
 	
 	char *error;
@@ -179,6 +179,9 @@ INST_SET op, op2;
 int dataOffset;
 int headerLength, opsLength;
 char * byteCodeName;
+
+C3A_value * auxvar;
+
 FILE * yyin;
 
 #endif
@@ -225,6 +228,7 @@ FILE *getDebugFile();
 void openCodeFile();
 void openByteCodeFile();
 void openDebugFile();
+void changeSourceToByteName(char ** dest, char * name);
 
 void closeFiles();
 
@@ -232,6 +236,8 @@ void writeByte(FILE *, char);
 void writeByteInt(FILE *, int);
 void writeByteFloat(FILE *, float);
 void writeStringBytes(FILE *, char *);
+
+void saveFunction(char *);
 
 void printByteCode(FILE *);
 
@@ -252,6 +258,8 @@ char *printRelOp(REL_INST_SET);
 C3A_value_container *checkNewVar(C3A_value *, C3A_value_container *);
 
 void yyerror(const char *);
+
+void printDebug(const char *);
 
 void printError(const char *, char *);
 void printError2(const char*, char *, char *);

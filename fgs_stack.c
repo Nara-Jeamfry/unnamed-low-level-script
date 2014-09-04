@@ -6,6 +6,7 @@ stack * StackInit(int size)
 {
 	stack * result = malloc(sizeof(stack));
 	
+	result->contents = NULL;
 	result->top = -1;
 	result->maxSize = size;
 	
@@ -26,7 +27,7 @@ char StackFull(stack * st)
 	
 }
 
-char StackDestroy(stack * st)
+void StackDestroy(stack * st)
 {
 	stacke * element;
 
@@ -40,6 +41,7 @@ char StackDestroy(stack * st)
 	st->contents = NULL;
 	st->maxSize = 0;
 	st->top = -1;
+	
 }
 
 int StackPushI(stack * st, stacke * elem)
@@ -101,7 +103,11 @@ int StackPushF(stack * st, stacke * elem)
 		st->contents->type = 1;
 		st->contents->last = element;
 		st->top++;
+		
+		return 1;
 	}
+	printf("--StackPushF-- Stack is full.\n");
+	return 0;
 }
 
 int StackPushS(stack * st, stacke * elem)
@@ -131,7 +137,11 @@ int StackPushS(stack * st, stacke * elem)
 		st->contents->type = 2;
 		st->contents->last = element;
 		st->top++;
+		
+		return 1;
 	}
+	printf("--StackPushS-- Stack is full.\n");
+	return 0;
 }
 
 int StackPopI(stack * st, stacke * data)
@@ -151,8 +161,8 @@ int StackPopI(stack * st, stacke * data)
 			else if(element->type == 2)
 			{
 				printf("--StackPopI-- Cannot convert from string\n");
-				free(element->value.literalS);
-				free(element);
+				/* free(element->value.literalS);
+				free(element); */
 				return 0;
 			}
 			else 
@@ -265,7 +275,7 @@ int StackPopS(stack * st, stacke * data)
 			if(stackverbose)	printf("--StackPopS-- Cannot pop value: Error copying memory.");
 			free(element->value.literalS);
 			free(element);
-			return 0;		
+			return 0;
 		}
 		free(element->value.literalS);
 		free(element);
@@ -280,5 +290,9 @@ int StackPopS(stack * st, stacke * data)
 
 int StackType(stack * st)
 {
-	return st->contents->type;
+	if(StackEmpty(st))
+		return -1;
+	else
+		return st->contents->type;
+		
 }

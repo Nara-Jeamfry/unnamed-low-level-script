@@ -105,9 +105,13 @@ void popvar(frame * f, stack * st, unsigned char variable)
 		StackPopS(st, aux);
 		setVariableS(f, variable, aux->value.literalS);
 	}
+	else if(stack_type == -1)
+	{
+		printf("Stack is empty.");
+	}
 	else
 	{
-		printf("Unknown variable type, cannot push.\n");
+		printf("Unknown variable type, cannot pull.\n");
 		free(aux);
 		exit(4);
 	}
@@ -118,6 +122,7 @@ void popvar(frame * f, stack * st, unsigned char variable)
 void operate(stack * st, int type)
 {
 	stacke * aux1, * aux2;
+	char * resultString;
 	
 	aux1 = malloc(sizeof(stacke));	
 	aux2 = malloc(sizeof(stacke));
@@ -157,8 +162,11 @@ void operate(stack * st, int type)
 			aux2->value.literalF /= aux1->value.literalF;
 			break;
 		case 8:
-			
-			aux2->value.literalI += aux1->value.literalI;
+			resultString = malloc(strlen(aux2->value.literalS)+strlen(aux1->value.literalS)+1);
+			strcpy(resultString, aux2->value.literalS);
+			strcat(resultString, aux1->value.literalS);
+			free(aux2->value.literalS);
+			aux2->value.literalS = resultString;
 			break;
 	}
 	
@@ -206,6 +214,11 @@ void mulf(stack * st)
 void divf(stack * st)
 {
 	operate(st, 7);
+}
+
+void adds(stack *st)
+{
+	operate(st, 8);
 }
 
 int lti(stack *st)

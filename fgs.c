@@ -36,6 +36,8 @@ fgs_state *start_context()
 	fgs_state *state = malloc(sizeof(fgs_state));
 	
 	initialize_state(state);
+	
+	return state;
 }
 
 void initialize_state(fgs_state *fgs)
@@ -123,9 +125,7 @@ functions * fgs_get_list(fgs_state * fgs)
 }
 
 int add_file_to_state(fgs_state *fgs, char * name)
-{
-	FILE * file;
-	
+{	
 	unsigned char * byteCode;
 	char * bytefile;
 	
@@ -139,20 +139,24 @@ int add_file_to_state(fgs_state *fgs, char * name)
 	if(fileAlreadyLoaded(fgs_get_codes(fgs), bytefile))
 	{
 		if(verbose)
-			printf("--parse_file-- ByteCode is up to date.\n\n", bytefile);
+			printf("--parse_file-- ByteCode is up to date.\n\n");
 			
 		free(bytefile);
-		return;
+		return 0;
 	}
 	
 	byteCode = parse_file(fgs, bytefile);
 	
 	add_loaded_file(fgs, bytefile, byteCode);
 	
-	int result = read_file(fgs, byteCode);
+	if(read_file(fgs, byteCode))
+	{
+		printf("Could not read file.\n");
+	}
 	print("Closing the file...\n");
 	
 	free(bytefile); /* we have to free the name (changeSourceToByteName can't do it for us) */
+	return 1;
 }
 
 /** Reads data from a FGS-ByteCode file.
@@ -169,7 +173,7 @@ int add_file_to_state(fgs_state *fgs, char * name)
 	\return A functions * data struct containing the existing functions 
 		and information about it.
 */
-functions * read_file_wotototo(fgs_state * fgs, unsigned char * fi)
+/* functions * read_file_wotototo(fgs_state * fgs, unsigned char * fi)
 {
 	int offset = 13, i, j, auxNumber, line;
 	int function_count, type_count, var_count;
@@ -194,7 +198,7 @@ functions * read_file_wotototo(fgs_state * fgs, unsigned char * fi)
 		fprintf(stdout, "Hey! Estic interpretant l'arxiu! :)\n");
 	
 	return NULL;
-}
+} */
 
 function *findFunction(char id, functions *list)
 {
@@ -230,20 +234,23 @@ void * runFunction(frame *actualFrame)
 {
 	unsigned char * op = actualFrame->func->start;
 	char * auxText;
-	char offset = actualFrame->func->offset;
 	
-	stacke * aux1, * aux2, * auxres;
 	var auxvar;
 	
-	while(op[actualFrame->pc] != 0)
+	while(op[(int)actualFrame->pc] != 0)
 	{
 		if(debug)
 			fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
-		switch(op[actualFrame->pc])
+		switch(op[(int)actualFrame->pc])
 		{
 			case BYT_GOTO:
 				printd("--debugFunction-- Found goto\n");
 				actualFrame->pc = op[(actualFrame->pc)+1];
+				break;
+			case BYT_HALR:
+				printd("--debugFunction-- Found return\n");
+				popvar(actualFrame, actualFrame->datastack, op[(actualFrame->pc)+1]);
+				op = actualFrame->func->end;
 				break;
 			case BYT_PUSHI:
 				printd("--debugFunction-- Found pushi\n");
@@ -257,7 +264,7 @@ void * runFunction(frame *actualFrame)
 				break;
 			case BYT_PUSHS:
 				printd("--debugFunction-- Found pushs\n");
-				actualFrame->pc+=readStringBytes((op+(actualFrame->pc)+1), &auxText);
+				actualFrame->pc+=readStringBytes((op+(actualFrame->pc)+1), &auxText)+1;
 				pushs(actualFrame->datastack, auxText);
 				free(auxText);
 				auxText = NULL;
@@ -323,7 +330,8 @@ void * runFunction(frame *actualFrame)
 				printd("--debugFunction-- Found unknown op\n");
 				actualFrame->pc = (actualFrame->pc)+1;
 		}
-		printStatus(actualFrame);
+		if(debug)
+			printStatus(actualFrame);
 	}
 	if(debug)
 		fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
@@ -336,7 +344,6 @@ frame * createFrame(fgs_state * fgs, char * function)
 {
 	frame * result = malloc(sizeof(frame));
 	int i;
-	var * aux, * lastaux;
 	
 	print("--createFrame-- Allocating memory...\n");
 	
@@ -436,7 +443,7 @@ void setVariableS(frame * context, unsigned char id, char * value)
 	return NULL;
 } */
 
-int readStringBytes(char * source, char **destination)
+int readStringBytes(unsigned char * source, char **destination)
 {
 	int length = (*source);
 	

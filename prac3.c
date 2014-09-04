@@ -718,12 +718,22 @@ void printByteCodeOp(FILE * fi, bytecode_entry *line, char length)
 {
 	switch(line->op)
 	{
+		case INPUT_PARAM:
+			printPopVar(fi, line->val1);
+			break;
 		case HALT:
 			writeByte(fi, BYT_HALT);
 			break;
 		case CALL:
 			writeByte(fi, BYT_CALL);
 			writeStringBytes(fi, line->val1->value.literalS);
+			break;
+		case PARAM:
+			printPushVar(fi, line->val1);
+			break;
+		case RETURN_OP:
+			writeByte(fi, BYT_HALR);
+			printByteCodeVar(fi, line->val1);
 			break;
 		case IF_OP:
 			printPushVar(fi, line->val1);
@@ -1071,6 +1081,17 @@ char *printOp(bytecode_entry *op, int *lineNumber, char * result)
 											(*lineNumber)+1,
 											op->gotoL+headerLength+opsLength);
 			(*lineNumber)+=GOTO_OFFSET;
+			return result;
+		break;
+		case INPUT_PARAM:
+			sprintf(result, "%X: INPUT_PARAM\n%X: #%s", (*lineNumber),
+											(*lineNumber)+1,
+											printC3AVal(op->val1, &auxlines));
+			return result;
+		break;
+		case RETURN_OP:
+			sprintf(result, "%X: RETURN\n%X: #%s", (*lineNumber), *lineNumber+1, printC3AVal(op->val1, &auxlines));
+			(*lineNumber)+=RETURN_OFFSET + auxlines;
 			return result;
 		break;
 		case ASSIGNMENT:

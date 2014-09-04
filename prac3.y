@@ -23,11 +23,12 @@ bytecode_entry * aux;
 %token <literal> LITERAL_FLOAT
 %token <literal> LITERAL_STRING
 %token <literal> LITERAL_BOOL
+%token <type> INTEGER FLOAT STRING
 
 %token <non_defined> ASSIGN ADD SUB MUL DIV
-%token <non_defined> OPEN_PARENTH CLOSE_PARENTH OPEN_CLAUD CLOSE_CLAUD SEPARATOR
+%token <non_defined> OPEN_PARENTH CLOSE_PARENTH OPEN_CLAUD CLOSE_CLAUD SEPARATOR RETURN
 %token <non_defined> GT GE LT LE EQ NE
-%token <non_defined> AND OR NOT
+%token <non_defined> AND OR NOT 
 
 %token <non_defined> FOR IN FOR_RANGE WHILE DO DONE IF THEN ELSE FI
 %token <error> ERROR
@@ -36,8 +37,8 @@ bytecode_entry * aux;
 %type <literal> boolean_expr or_expr and_expr not_expr boolean
 %type <variable> name
 %type <marker> if_expr for_expr while_expr or and while do done separator start_else else
-%type <error>  assign long_error error_assign
 %type <statement> programa conditional ordre loop function_call params param_list block 
+%type <error>  assign error_assign
 
 %%
 
@@ -51,42 +52,54 @@ all
 
 function 
 	: ID params block  {
-		/*if(calc==1)
-			fprintf(stdout, "Execucio finalitzada%s!", (errors_found == 0) ? "" : " amb errors" );
-		else
-		{*/
+		
 			int a = nextQuad();
 			op = HALT;
 			aux = gen_code_op(op);
 			backpatch($3, a);
 			saveFunction($1.identifier);
-		/* } */
 	}
-	/*
-	programa {
-			int a = nextQuad();
-			op = HALT;
-			aux = gen_code_op(op);
-			backpatch($1, a);
-			if(errors_found == 0)
-				printCode(getCodeFile());
-	} */
 	
 params : OPEN_PARENTH CLOSE_PARENTH {
 	
 	}
-	| OPEN_PARENTH ID name CLOSE_PARENTH {
-		addType($2.identifier);
-		varLocation($3.identifier);
-		fprintf(getDebugFile(), "Line %d: Loading variable %s from type %s.\n", yylineno, $3.identifier, $2);
-		storeSym($3);
-		/* op = LOAD;
-		aux = gen_code_op(op); */
+	| OPEN_PARENTH param_list CLOSE_PARENTH {
+		
 	}
-	| OPEN_PARENTH error {
-		yyerror("Expected closing parenthesis not found.");
+	| OPEN_PARENTH error CLOSE_PARENTH {
+		yyerror("Unexpected parameter list.");
 	}
 
+param_list
+	: param_list ID name {
+		addType($2.identifier);
+		
+		op = INPUT_PARAM;
+		aux = gen_code_op(op);
+		aux->val1 = varLocation($3.identifier);
+				
+		storeSym($3);
+		
+		fprintf(getDebugFile(), "Line %d: Loading variable %s from type %s.\n", yylineno, $3.identifier, $2.identifier);
+	
+		$$=NULL;
+		
+	}
+	| ID name {
+		addType($1.identifier);
+		
+		op = INPUT_PARAM;
+		aux = gen_code_op(op);
+		aux->val1 = varLocation($2.identifier);
+				
+		storeSym($2);
+		
+		fprintf(getDebugFile(), "Line %d: Loading variable %s from type %s.\n", yylineno, $2.identifier, $1.identifier);
+	
+		$$=NULL;
+		
+	}
+	
 separator
 	: {
 		$$.quadtupla = nextQuad();
@@ -139,26 +152,40 @@ ordre : assign SEPARATOR {
 	| function_call SEPARATOR {
 		$$ = NULL;
 	}
+	| RETURN boolean_expr SEPARATOR {
+		op = RETURN_OP;
+		aux = gen_code_op(op);
+		aux->val1 = duplicate_entry($2.variable);
+		$$ = NULL;
+	}
 
 function_call
 	: ID OPEN_PARENTH CLOSE_PARENTH {
 		fprintf(getDebugFile(), "Line %d: Function call without params.\n", yylineno);
 		op = CALL;
 		aux = gen_code_op(op);
-		aux->gotoL = 1;
+		aux->val1 = varLocation($1.identifier);
 	}
 	| ID OPEN_PARENTH input_params CLOSE_PARENTH {
 		/*Load input params into stack */
 		fprintf(getDebugFile(), "\nLine %d: Function call with params.\n", yylineno);
+		op = CALL;
+		aux = gen_code_op(op);
+		aux->val1 = varLocation($1.identifier);
 	}
 	
 input_params
 	: input_params ID {
 		fprintf(getDebugFile(), ", %s", $2.identifier);
-		
+		op = PARAM;
+		aux = gen_code_op(op);
+		aux->val1 = varLocation($2.identifier);
 	}
 	| ID {
 		fprintf(getDebugFile(), "Line %d: Params list: %s", yylineno, $1.identifier);
+		op = PARAM;
+		aux = gen_code_op(op);
+		aux->val1 = varLocation($1.identifier);
 		
 	}
 	
@@ -238,7 +265,7 @@ for_expr
 		aux = gen_code_op(op);
 		aux->oprel = SUBI;
 		aux->val1 = varLocation($3.identifier);
-		aux->val2 = $5.variable;
+		aux->val2 = duplicate_entry($5.variable);
 		aux->val3 = litLocationInt(1);
 		$$.quadtupla = nextQuad();
 		op = ASSIGNMENT_OP;
@@ -251,7 +278,7 @@ for_expr
 		aux = gen_code_op(op);
 		aux->oprel = LTI;
 		aux->val1 = varLocation($3.identifier);
-		aux->val2 = $7.variable;
+		aux->val2 = duplicate_entry($7.variable);
 		$$.trueList = addToList(NULL, aux);
 		op = GOTO;
 		aux = gen_code_op(op);
@@ -290,27 +317,31 @@ loop
 assign 
 	: name ASSIGN boolean_expr {
 		fprintf(getDebugFile(), "Line %d:  Assigning on variable %s type %s.\n", yylineno, $1.identifier, typeToString($3.type));
-		if($3.type >=0 && $3.type <4 && errors_found == 0){
+		if($3.type >=0 && $3.type <4){
 			$1 = fromLitToVar($3, $1.identifier);
 			op = ASSIGNMENT;
 			aux = gen_code_op(op);
 			aux->val1 = varLocation($1.identifier);
-			aux->val2 = $3.variable;
+			aux->val2 = duplicate_entry($3.variable);
 			$$=NULL;
 				
 			storeSym($1);
 		}
 	}
+	| name ASSIGN function_call {
+		
+	}
 	| name error_assign boolean_expr {
-		printError("Syntax error: unexpected symbol encountered.", "");
+		yyerror("Syntax error: unexpected symbol encountered.");
 	}
 
 error_assign
-	: long_error ASSIGN {
+	: error ASSIGN {
+		yyerror("Encountered an error before the assign symbol.");
 	}
-	| ASSIGN long_error {
+	| ASSIGN error {
 	}
-	| long_error ASSIGN long_error {
+	| error ASSIGN error {
 	}
 	
 name 
@@ -697,9 +728,9 @@ multiplication_expr
 
 error_expression
 	: generic_expression
-	| error_expression long_error generic_expression {
+	| error_expression error generic_expression {
 		$$ = operateValues($1, $3, SUMA);
-		printError("Semantic Error: Unexpected operator %s on expression. (Default operator: sum)", $2);
+		yyerror("Semantic Error: Unexpected operator on expression. (Default operator: sum)");
 	}
 	
 boolean
@@ -984,16 +1015,6 @@ generic_expression
 	| OPEN_PARENTH boolean_expr CLOSE_PARENTH {
 		$$ = $2;
 	}
-
-long_error
-	: ERROR long_error {
-		$$ = malloc(sizeof(char) * (strlen($2) + strlen($1)));
-		strcpy($$, $1);
-		strcat($$, $2);
-	}
-	| ERROR {
-		$$ = $1;
-	}
 	
 %%
 
@@ -1014,8 +1035,10 @@ int parseFile(FILE * file, char * output_name)
 			fprintf(stdout, "Writing ByteCode file!\n");
 		printByteCode(getByteCodeFile());
 	}
-	/* if(bisonverbose)
-		fprintf(stdout, "Cleaning memory...\n"); */
+	else
+		fprintf(stdout, "Cannot compile!\n");
+	if(bisonverbose)
+		fprintf(stdout, "Cleaning memory...\n");
 	cleanMemory(); 
 	if(bisonverbose)
 			fprintf(stdout, "Fi!\n");

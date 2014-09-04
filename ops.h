@@ -2,6 +2,7 @@
 #define bytecode_ops
 
 #define BYT_HALT 0x00
+#define BYT_HALR 0x01 /**< 0x01 [var] - Returns a value (will be pushed onto the stack after execution). */
 #define BYT_GOTO 0x02
 #define BYT_CALL 0x03
 
@@ -41,6 +42,7 @@
 #define ASSIGNMENTUN_OFFSET 5
 #define ASSIGNMENTOP_OFFSET 7
 #define ASSIGNMENT_OFFSET 4
+#define RETURN_OFFSET 2
 #define GOTO_OFFSET 2
 #define IF_OP_OFFSET 7
 #define CALL_OFFSET 2

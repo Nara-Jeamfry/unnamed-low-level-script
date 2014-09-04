@@ -39,9 +39,11 @@ typedef enum {
 	ASSIGNMENT,
 	ASSIGNMENT_OP,
 	ASSIGNMENT_UN,
+	INPUT_PARAM,
 	PARAM,
 	CALL,
-	HALT
+	HALT,
+	RETURN_OP
 } INST_SET;
 
 typedef enum {

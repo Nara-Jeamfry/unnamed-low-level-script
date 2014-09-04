@@ -112,10 +112,18 @@ int read_file(fgs_state * fgs, unsigned char * bytecode)
 			op = bytecode[offset++];
 			switch(op)
 			{
-				case BYT_GOTO:
+				case BYT_CALL:
+					offset+=readStringBytes((unsigned char *)(bytecode+offset), &auxString);
 					if(verbose)
-						fprintf(stdout, "%X: goto %X\n", offset-3-line, bytecode[offset++]);
-					else
+					{
+						fprintf(stdout, "%X: call %s\n", offset-3-line, auxString);
+					}
+					free(auxString);
+					auxString = NULL;
+					break;
+				case BYT_HALR:
+					if(verbose)
+						printf("%X: return %d\n", offset-3-line, bytecode[offset]);
 						offset++;
 					break;
 				case BYT_GOTO:

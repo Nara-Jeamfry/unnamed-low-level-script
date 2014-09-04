@@ -1,3 +1,4 @@
+#include "fgs_structs.h"
 
 #ifndef VERBOSE
 #define VERBOSE

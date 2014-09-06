@@ -66,6 +66,7 @@ void clean_state(fgs_state *fgs)
 		free(files);
 		files = auxfgs;
 	}
+	fgs->compiled_files = NULL;
 	
 	codes = fgs->loaded_files;
 	while(codes)
@@ -77,6 +78,7 @@ void clean_state(fgs_state *fgs)
 		free(codes);
 		codes = auxbfgs;
 	}
+	fgs->loaded_files = NULL;
 
 	StackDestroy(fgs->mainstack);
 }
@@ -231,6 +233,8 @@ void pop_valueS(fgs_state * fgs, char ** destination)
 	free(aux);
 }
 
+void register_function(int (*function)(fgs_state *), char * name);
+
 /** Reads data from a FGS-ByteCode file.
 	read_file
 	
@@ -274,6 +278,12 @@ int runFunction(frame *actualFrame)
 			fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
 		switch(op[(int)actualFrame->pc])
 		{
+			case BYT_CALL:
+				printd("--debugFunction-- Found call\n");
+				actualFrame->pc+=readStringBytes((op+(actualFrame->pc)+1), &auxTest)+1;
+				if(fgs_call_function(fgs, auxTest);
+				free(auxTest);
+				break;
 			case BYT_GOTO:
 				printd("--debugFunction-- Found goto\n");
 				actualFrame->pc = op[(actualFrame->pc)+1];

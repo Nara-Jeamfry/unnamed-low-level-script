@@ -1,0 +1,6 @@
+prova_aritmetica_strings()
+{
+	a := "hola";
+	b := a + "!";
+	return b;
+}

@@ -61,6 +61,8 @@ int pop_valueI(fgs_state *);
 float pop_valueF(fgs_state *);
 void pop_valueS(fgs_state *, char **);
 
+void register_function(int (*function)(fgs_state *), char * name);
+
 /* ------------- INTERNAL API ------------ */
 
 

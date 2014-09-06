@@ -1,0 +1,5 @@
+prova_tipus_nou(personatge p)
+{
+	p:=0;
+	return p;
+}

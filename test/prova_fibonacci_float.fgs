@@ -1,0 +1,13 @@
+prova_fibonacci_float( float n )
+{
+	x := 1;
+	y := 1;
+	fib := 0;
+	for (sum in 3..n) {
+		fib := x + y;
+		x := y;
+		y := fib;
+	}
+	
+	return fib;
+}

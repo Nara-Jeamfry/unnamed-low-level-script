@@ -36,12 +36,11 @@ void StackDestroy(stack * st)
 		element = st->contents->last;
 		free(st->contents);
 		st->contents = element;
+		st->top--;
 	}
 	
 	st->contents = NULL;
 	st->maxSize = 0;
-	st->top = -1;
-	
 }
 
 int StackPushI(stack * st, stacke * elem)

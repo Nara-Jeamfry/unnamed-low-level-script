@@ -36,6 +36,8 @@ typedef struct framerl {
 	stack * datastack;
 	
 	char * ops;
+
+	fgs_state * state;
 } frame;
 
 typedef struct cfunction_container

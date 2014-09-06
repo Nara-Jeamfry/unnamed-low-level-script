@@ -69,12 +69,10 @@ newline \n
 			}
 			
 [{]			{
-				fprintf(getDebugFile(), "%d: FOUND { TOKEN.\n", yylineno);
 				return OPEN_CLAUD;
 			}
 			
 [}]			{
-				fprintf(getDebugFile(), "%d: FOUND } TOKEN.\n", yylineno);
 				return CLOSE_CLAUD;
 			}
 			
@@ -98,28 +96,12 @@ while		{
 				return WHILE;
 			}
 			
-do			{
-				return DO;
-			}
-			
-done		{
-				return DONE;
-			}
-			
 if			{
 				return IF;
 			}
 			
-then		{
-				return THEN;
-			}
-			
 else		{
 				return ELSE;
-			}
-			
-fi			{
-				return FI;
 			}
 
 true		{

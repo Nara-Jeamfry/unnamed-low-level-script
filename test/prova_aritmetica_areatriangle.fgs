@@ -1,0 +1,5 @@
+prova_aritmetica_areatriangle(int a; int b)
+{
+	area := (a * b) / 2;
+	return area;
+}

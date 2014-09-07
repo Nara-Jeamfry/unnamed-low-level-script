@@ -1,0 +1,5 @@
+prova_codi_c(int a)
+{
+	b = 13;
+	return b;
+}

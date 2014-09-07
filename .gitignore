@@ -32,3 +32,16 @@ lua*
 *.bfgs
 
 !test/*.fgs
+stdafx.h
+app.ico
+app.rc
+Debug/FGS.vcxprojResolveAssemblyReference.cache
+FGS.opensdf
+FGS.sdf
+FGS.sln
+FGS.suo
+FGS.vcxproj
+FGS.vcxproj.filters
+FGS.vcxproj.user
+ReadMe.txt
+resource.h

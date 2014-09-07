@@ -1,0 +1,9 @@
+resta(int a; int b)
+{
+	return a - b;
+}
+
+resta(int a)
+{
+	return a;
+}

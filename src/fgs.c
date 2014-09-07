@@ -286,9 +286,9 @@ int runFunction(frame *actualFrame)
 			case BYT_CALL:
 				printd("--debugFunction-- Found call\n");
 				actualFrame->pc+=readStringBytes((op+(actualFrame->pc)+1), &auxText)+1;
-				if(fgs_call_function(actualFrame->state, auxText))
+				if(!fgs_call_function(actualFrame->state, auxText))
 				{
-					
+					printf("--runFunction-- Call to %s: undefined function.", auxText);
 				}
 				free(auxText);
 				break;

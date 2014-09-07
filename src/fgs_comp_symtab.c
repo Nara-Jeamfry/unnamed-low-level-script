@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include "symtab.h"
+#include "fgs_comp_symtab.h"
 
 /****************************************************************************/
 /*                                                                          */

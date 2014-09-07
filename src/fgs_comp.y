@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "symtab.h"
+#include "fgs_comp_symtab.h"
 
 extern int yylineno;
 extern int yylex();

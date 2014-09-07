@@ -14,18 +14,23 @@ void testFunction(fgs_state * FGS, char * function)
 
 	for(i=0; i<1000; i++)
 	{
-		fgs_call_function(FGS, function);
+		if(!fgs_call_function(FGS, function))
+		{
+			printf("Function %s is not loaded.\n", function);
+			printf("--------------\n");
+			return;
+		}
 		result += pop_valueI(FGS);
 	}
 
 	if(!result)
 	{
-		printf("Function %s failed test.\n", function);
+		printf("Function %s: \t\t\tFAILED.\n", function);
 	}
 	else
 	{
 		if(test)
-			printf("Function %s passed test.\n", function);
+			printf("Function %s: \t\t\tPASSED.\n", function);
 	}
 
 	if(test)
@@ -39,17 +44,22 @@ void testFunctionI(fgs_state *FGS, char * function, int expect)
 		printf("Now, we're gonna try to load %s function\n", function);
 
 	
-	fgs_call_function(FGS, function);
+	if(!fgs_call_function(FGS, function))
+	{
+		printf("Function %s is not loaded.\n", function);
+		printf("--------------\n");
+		return;
+	}
 	result = pop_valueI(FGS);
 
 	if(result != expect)
 	{
-		printf("Function %s failed test.\n", function);
+		printf("Function %s: \t\t\tFAILED.\n", function);
 	}
 	else
 	{
 		if(test)
-			printf("Function %s passed test.\n", function);
+			printf("Function %s: \t\t\tPASSED.\n", function);
 	}
 
 	if(test)
@@ -63,17 +73,22 @@ void testFunctionS(fgs_state *FGS, char * function, char * expect)
 		printf("Now, we're gonna try to load %s function\n", function);
 
 	
-	fgs_call_function(FGS, function);
+	if(!fgs_call_function(FGS, function))
+	{
+		printf("Function %s is not loaded.\n", function);
+		printf("--------------\n");
+		return;
+	}
 	pop_valueS(FGS, &result);
 
 	if(strcmp(result,expect))
 	{
-		printf("Function %s failed test.\n", function);
+		printf("Function %s: \t\t\tFAILED.\n", function);
 	}
 	else
 	{
 		if(test)
-			printf("Function %s passed test.\n", function);
+			printf("Function %s: \t\t\tPASSED.\n", function);
 	}
 
 	if(test)
@@ -184,8 +199,8 @@ int main(int argc, char **argv)
 	testFunctionI(FGS, "prova_aritmetica_areatriangle", 50);
 
 	fgs_load_script(FGS, "test/prova_lexic_c.fgs");
-	testFunctionI(FGS, "prova_codi_c", 1);
 	push_valueI(FGS, 1);
+	testFunctionI(FGS, "prova_codi_c", 1);
 
 	/* 
 	/* Test: *

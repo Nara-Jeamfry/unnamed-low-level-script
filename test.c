@@ -126,38 +126,71 @@ int main(int argc, char **argv)
 	if(test)
 		printf("--------------\n");
 
-	/*fgs_load_script(FGS, "test/prova_condicional_if.fgs");
-	/*fgs_load_script(FGS, "test/prova_condicional_if.fgs");
-	*/
 		
-
+	/* Test */
 	fgs_load_script(FGS, "test/prova_condicional_else.fgs");
 	testFunction(FGS, "prova_condicional_else");
-	
+			
+	/* Test */
 	fgs_load_script(FGS, "test/prova_condicional_if.fgs");
 	testFunction(FGS, "prova_condicional_if");
-	
+			
+	/* Test */
 	fgs_load_script(FGS, "test/prova_aritmetica_mul.fgs");
 	testFunction(FGS, "prova_aritmetica_mul");
-	
+			
+	/* Test */
 	fgs_load_script(FGS, "test/prova_aritmetica_sum.fgs");
 	testFunction(FGS, "prova_aritmetica_sum");
-	
+			
+	/* Test */
 	fgs_load_script(FGS, "test/prova_aritmetica_strings.fgs");
 	testFunctionS(FGS, "prova_aritmetica_strings", "hola!");
-	
+			
+	/* Test */
 	fgs_load_script(FGS, "test/prova_fibonacci.fgs");
 	push_valueI(FGS, 30);
 	testFunctionI(FGS, "prova_fibonacci", 514229);
 	push_valueF(FGS, 30.0f);
 	testFunctionI(FGS, "prova_fibonacci", 514229);
-	
+			
+	/* Test */
 	push_valueI(FGS, 1);
 	fgs_load_script(FGS, "test/prova_tipus_nou.fgs");
 	testFunctionI(FGS, "prova_tipus_nou", 1);
-	/*testFunction(FGS, "prova_condicional_if");
-	/*testFunction(FGS, "prova_condicional_if");
-	/*testFunction(FGS, "prova_condicional_if");*/
+			
+	/* Test */
+	fgs_load_script(FGS, "test/prova_aritmetica_parametres.fgs");
+	push_valueI(FGS, 10);
+	push_valueI(FGS, 10);
+	testFunctionI(FGS, "suma", 20);
+
+	/* Test: */
+	fgs_load_script(FGS, "test/prova_aritmetica_return.fgs");
+	push_valueI(FGS, 10);
+	push_valueI(FGS, 10);
+	testFunctionI(FGS, "suma", 20);
+
+	/* Test: */
+	fgs_load_script(FGS, "test/prova_funcions_repetides.fgs");
+	push_valueI(FGS, 10);
+	push_valueI(FGS, 10);
+	testFunctionI(FGS, "resta", 0);
+
+	/* test: */
+	fgs_load_script(FGS, "test/prova_aritmetica_areatriangle.fgs");
+	push_valueI(FGS, 10);
+	push_valueI(FGS, 10);
+	testFunctionI(FGS, "prova_aritmetica_areatriangle", 50);
+
+	fgs_load_script(FGS, "test/prova_lexic_c.fgs");
+	testFunctionI(FGS, "prova_codi_c", 1);
+	push_valueI(FGS, 1);
+
+	/* 
+	/* Test: *
+	fgs_load_script(FGS, "test/.fgs");
+	testFunction(FGS, ""); */
 	
 	destroy_context(FGS);
 	return 0;

@@ -154,6 +154,11 @@ int fgs_load_script(fgs_state *fgs, char * name)
 	}
 	
 	byteCode = parse_file(fgs, bytefile);
+
+	if(!byteCode)
+	{
+		return 0;
+	}
 	
 	add_loaded_file(fgs, bytefile, byteCode);
 	
@@ -280,9 +285,12 @@ int runFunction(frame *actualFrame)
 		{
 			case BYT_CALL:
 				printd("--debugFunction-- Found call\n");
-				actualFrame->pc+=readStringBytes((op+(actualFrame->pc)+1), &auxTest)+1;
-				if(fgs_call_function(fgs, auxTest);
-				free(auxTest);
+				actualFrame->pc+=readStringBytes((op+(actualFrame->pc)+1), &auxText)+1;
+				if(fgs_call_function(actualFrame->state, auxText))
+				{
+					
+				}
+				free(auxText);
 				break;
 			case BYT_GOTO:
 				printd("--debugFunction-- Found goto\n");

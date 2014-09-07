@@ -122,7 +122,7 @@ parameter_spec
 	}
 
 param_list
-	: param_list parameter_spec {
+	: param_list SEPARATOR parameter_spec {
 		$$=NULL;
 	}
 	| parameter_spec {

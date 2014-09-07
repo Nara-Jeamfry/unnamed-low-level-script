@@ -242,6 +242,11 @@ unsigned char * parse_file(fgs_state * fgs, char * filename)
 	
 	fi = open_file(filename);
 	
+	if(fi == NULL)
+	{
+		return NULL;
+	}
+
 	fseek(fi, 0, SEEK_END);
 	lSize = ftell(fi);
 	rewind(fi);
@@ -325,7 +330,7 @@ FILE * open_file(char * name)
 	if(file==NULL)
 	{
 		fprintf(stdout, "Error while opening file %s\n", name);
-		exit(1);
+		return NULL;
 	}
 	
 	return file;

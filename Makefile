@@ -3,62 +3,78 @@ CC = gcc
 PROF = gprof
 LEX = flex
 YACC = bison
-LIB = -lc -lfl
-APP = fgs
-SOURCE_FOLDER = src/
-COMPILER = $(SOURCE_FOLDER)$(APP)_comp
-IN_LEX = $(SOURCE_FOLDER)$(COMPILER).l
-IN_YACC = $(SOURCE_FOLDER)$(COMPILER).y
+MEMCHECK = valgrind
+SRC_FOLDER = src/
+COMPILER_FOLDER = $(SRC_FOLDER)compiler/
 
-OBJ = $(COMPILER).o $(COMPILER)l.o $(COMPILER)y.o
-SRC = $(COMPILER).c
-SRCL = $(COMPILER)l.tmp.c
-SRCY = $(COMPILER)y.tmp.c
-SRCH = $(COMPILER).h
-SRCSYM = $(COMPILER)_symtab.c
-YHEADER = $(COMPILER)y.h
-LIBS = fgs_*.c 
+BASEDIR = $(CURDIR)
 
-INTC = fgs.c
-INTH = fgs.h
+#Specific defines
+APP_NAME = fgs
+COMPILER = $(APP_NAME)_comp
 
-INTTESTC = test.c
-INTHCOPY = test.h
+#Options and flags
+PROF_CCFLAGS = -pg
+CCFLAGS = -ansi
+DEBUG_CCFLAGS = -g -Wall
+TEST_FLAGS = -t
 
-BIN = $(APP).exe
-INTTEST = test.exe
-INTTESTP = test_prof.exe
+HEADERS_FLAG = -Isrc/headers
 
-PROFFLAGS = -b 
+#Deliverables
+COMPILER_HEADER = fgs_comp.h
+OPERATIONS = ops.h
 
-LFLAGS = -n -o $(SRCL)
-YFLAGS = -d -v -o $(SRCY) --defines=$(YHEADER)
-CFLAGS = -ansi -g -Wall
-OTHERS = prac3y.h fgs_compy.tmp.output log.txt code.c3a output.byt *.stackdump *.bfgs
+SRCL = $(COMPILER).l
+CL = $(COMPILER)_l.c
+OBJL = $(COMPILER)_l.o
 
-all : compile
+SRCY = $(COMPILER).y
+CY = $(COMPILER)_y.c
+OBJY = $(COMPILER)_y.o
 
-test : compile
-	@echo Compilant...
-	@echo
-	./$(INTTEST) -t
+
+
+#Target rules
+all : test_compile
+	@echo Finished compilation of test!
 	
-compile : $(SRCL) $(SRCY)
-	$(CC) -o $(INTTEST) $(CFLAGS) $(INTC) $(INTTESTC) $(LIBS)
+test : test_compile
+	@echo Executing test...
+	./test.exe -t
+
+test_compile : interpreter
+	$(CC) $(HEADERS_FLAG) -ansi -o test.exe src/test.c build/*.o
+
+interpreter : compiler
+	$(CC) -c $(HEADERS_FLAG) $(CCFLAGS) src/fgs*.c
+	mv fgs*.o build/
+#	rm build/$(APP_NAME).a
+#	ar -cvq build/$(APP_NAME).a build/*.o
+
+
+profiling : interpreter
 	
-profiling : $(SRCL) $(SRCY)
-	$(CC) -o $(INTTESTP) $(CFLAGS) -pg $(INTC) $(INTTESTC) $(LIBS)
-	./$(INTTESTP)
-	$(PROF) $(INTTESTP) $(PROFFLAGS)
-	
+
 valgrind : compile
-	valgrind --tool=memcheck --leak-check=yes ./$(INTTEST)
+	$(MEMCHECK) --tool=memcheck --leak-check=yes ./$(TEST) $(TEST_FLAGS)
 
-$(SRCL) : $(IN_LEX)
-	$(LEX) $(LFLAGS) $<
+compiler : tmp/$(CL) tmp/$(CY) build/
+	$(CC) -ansi $(HEADERS_FLAG) -g -c src/fgs_comp_symtab.c src/fgs_comp.c tmp/fgs_comp*.c 
+	mv fgs_comp*.o build/
 
-$(SRCY) : $(IN_YACC)
-	$(YACC) $(YFLAGS) $<
+tmp/$(CL) : tmp/
+	flex -n -o tmp/$(CL) src/$(SRCL)
 
-clean : 
-	rm -f *~ $(BIN)* $(INTTEST) $(INTTESTP) $(OTHERS) $(SRCL) $(SRCY) $(INTBINCOPY) $(INTBIN) output/*
+tmp/$(CY) : tmp/
+	bison -d -o tmp/$(CY) src/$(SRCY)
+
+build/ :
+	mkdir build
+
+tmp/ :
+	mkdir tmp
+
+clean :
+	rm -r -f tmp
+	rm -r -f build

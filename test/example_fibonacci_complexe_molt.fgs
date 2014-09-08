@@ -1,0 +1,51 @@
+fibonacci( int n )
+{
+	x := 1;
+	y := 1;
+	suma();
+	for (sum in 3..n) {
+		fib := x + y;
+		x := y;
+		y := fib;
+	}
+}
+
+suma(integer int)
+{
+	hola := "a";
+	hola := hola + "b";
+	int := 3 + 4;
+	int := int + 1;
+}
+
+func1(tipus int)
+{
+	hey:=1;
+}
+
+func2(tipus int)
+{
+	hey:=1;
+}
+
+func3(tipus int)
+{
+	hey:=1;
+}
+
+
+func4(tipus int)
+{
+	hey:=1;
+}
+
+
+func5(tipus int)
+{
+	hey:=1;
+}
+
+func6(tipus int)
+{
+	hey:=1;
+}

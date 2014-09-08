@@ -4,7 +4,7 @@
 %{
 
 #include "fgs_comp.h"
-#include "fgs_compy.h"
+#include "fgs_comp_y.h"
 #include <stdio.h>
 
 extern int yylineno;

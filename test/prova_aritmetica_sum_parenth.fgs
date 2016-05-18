@@ -1,0 +1,12 @@
+prova_aritmetica_sum_parenth()
+{
+	a:=1;
+	b:=2;
+	a := (a + b);
+
+	a := (a - b);
+	if(a = 1)
+		return a;
+	else
+		return 0;
+}

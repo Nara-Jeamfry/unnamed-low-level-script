@@ -39,12 +39,22 @@ OBJY = $(COMPILER)_y.o
 all : test_compile
 	@echo Finished compilation of test!
 	
-test : test_compile
-	@echo Executing test...
+test : test.exe
+	@echo Executing test with -t
 	./test.exe -t
+
+testv : test.exe
+	@echo Executing test with -tv
+	./test.exe -vt
+
+test.exe : test_compile
+	
 
 test_compile : interpreter
 	$(CC) $(HEADERS_FLAG) -ansi -o test.exe src/test.c build/*.o
+
+debug_compile : tmp/$(CL) tmp/$(CY) build/
+	$(CC) -ansi $(HEADERS_FLAG) -g -o testd.exe src/fgs*.c src/test.c tmp/fgs*.c
 
 interpreter : compiler
 	$(CC) -c $(HEADERS_FLAG) $(CCFLAGS) src/fgs*.c
@@ -56,7 +66,7 @@ interpreter : compiler
 profiling : interpreter
 	
 
-valgrind : compile
+valgrind : compiler
 	$(MEMCHECK) --tool=memcheck --leak-check=yes ./$(TEST) $(TEST_FLAGS)
 
 compiler : tmp/$(CL) tmp/$(CY) build/

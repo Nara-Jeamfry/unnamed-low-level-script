@@ -50,6 +50,7 @@ void add_function(fgs_state *, functions *);
 /* ------------- File Treatment ------------- */
 /* ------------------------------------------ */
 
+
 /*--- Compilation */
 /**
 	\brief Adds info about compilation of a file to the state.
@@ -69,6 +70,11 @@ void compileFile(fgs_state *, char * filename);
 void add_loaded_file(fgs_state * fgs, char * name, unsigned char * code);
 int fileAlreadyLoaded(bfgsfile *filestruct, char * name);
 unsigned char * parse_file(fgs_state *, char *);
+
+/* Returns string length as to skip it from the code (counting THE BYTE FOR THE LENGTH too).
+
+   Keep in mind that this function allocates memory that should be deallocated afterwards. */
+int readStringBytes(unsigned char * source, char **destination);
 
 /*--- Generic */
 FILE * open_file(char *);

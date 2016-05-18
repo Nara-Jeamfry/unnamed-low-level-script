@@ -62,12 +62,4 @@ float pop_valueF(fgs_state *);
 void pop_valueS(fgs_state *, char **);
 
 void register_function(int (*function)(fgs_state *), char * name);
-
-/* ------------- INTERNAL API ------------ */
-
-
-/* Returns string length as to skip it from the code (counting THE BYTE FOR THE LENGTH too).
-
-   Keep in mind that this function allocates memory that should be deallocated afterwards. */
-int readStringBytes(unsigned char * source, char **destination);
 #endif

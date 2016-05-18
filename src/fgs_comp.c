@@ -294,9 +294,9 @@ bytecode_entry *gen_code_op(INST_SET op)
 			fprintf(getDebugFile(), "Added call at code_offset %d\n", codeOffset);
 			codeOffset+=CALL_OFFSET;
 			break;
-		case INPUT_PARAM:
-			fprintf(getDebugFile(), "Added input_param at code_offset %d\n", codeOffset);
-			codeOffset+=INPUT_PARAM_OFFSET;
+		case IN_PARAM:
+			fprintf(getDebugFile(), "Added IN_PARAM at code_offset %d\n", codeOffset);
+			codeOffset+=IN_PARAM_OFFSET;
 			break;
 		case ASSIGNMENT:
 			fprintf(getDebugFile(), "Added assignment at code_offset %d\n", codeOffset);
@@ -731,7 +731,7 @@ void printByteCodeOp(FILE * fi, bytecode_entry *line, char length)
 {
 	switch(line->op)
 	{
-		case INPUT_PARAM:
+		case IN_PARAM:
 			printPopVar(fi, line->val1);
 			break;
 		case HALT:
@@ -741,12 +741,13 @@ void printByteCodeOp(FILE * fi, bytecode_entry *line, char length)
 			writeByte(fi, BYT_CALL);
 			writeStringBytes(fi, line->val1->value.literalS);
 			break;
-		case PARAM:
+		case OUT_PARAM:
 			printPushVar(fi, line->val1);
 			break;
 		case RETURN_OP:
 			writeByte(fi, BYT_HALR);
 			printByteCodeVar(fi, line->val1);
+			writeByte(fi, BYT_HALT);
 			break;
 		case IF_OP:
 			printPushVar(fi, line->val1);
@@ -1096,15 +1097,15 @@ char *printOp(bytecode_entry *op, int *lineNumber, char * result)
 			(*lineNumber)+=GOTO_OFFSET;
 			return result;
 		break;
-		case INPUT_PARAM:
-			sprintf(result, "%X: INPUT_PARAM\n%X: #%s", (*lineNumber),
+		case IN_PARAM:
+			sprintf(result, "%X: IN_PARAM\n%X: #%s", (*lineNumber),
 											(*lineNumber)+1,
 											printC3AVal(op->val1, &auxlines));
-			(*lineNumber)+=INPUT_PARAM_OFFSET;
+			(*lineNumber)+=IN_PARAM_OFFSET;
 			return result;
 		break;
 		case RETURN_OP:
-			sprintf(result, "%X: RETURN\n%X: #%s", (*lineNumber), *lineNumber+1, printC3AVal(op->val1, &auxlines));
+			sprintf(result, "%X: RETURN\n%X: %s", (*lineNumber), *lineNumber+1, printC3AVal(op->val1, &auxlines));
 			(*lineNumber)+=RETURN_OFFSET + auxlines;
 			return result;
 		break;
@@ -1131,9 +1132,9 @@ char *printOp(bytecode_entry *op, int *lineNumber, char * result)
 			(*lineNumber)+=ASSIGNMENTUN_OFFSET + auxlines;
 			return result;
 		break;
-		case PARAM:
+		case OUT_PARAM:
 			aux = printC3AVal(op->val1, &auxlines);
-			sprintf(result, "%X: PARAM %s", (*lineNumber), 
+			sprintf(result, "%X: OUT_PARAM %s", (*lineNumber), 
 											aux);
 			(*lineNumber)+=1 + auxlines;
 			return result;

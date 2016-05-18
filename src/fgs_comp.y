@@ -74,7 +74,7 @@ parameter_spec
 	: ID name {
 		addType($1.identifier);
 		
-		op = INPUT_PARAM;
+		op = IN_PARAM;
 		aux = gen_code_op(op);
 		aux->val1 = varLocation($2.identifier);
 		aux->val1->type = 4;
@@ -85,7 +85,7 @@ parameter_spec
 	
 	}
 	| INTEGER name {
-		op = INPUT_PARAM;
+		op = IN_PARAM;
 		aux = gen_code_op(op);
 		aux->val1 = varLocation($2.identifier);
 		aux->val1->type = INTT;
@@ -97,7 +97,7 @@ parameter_spec
 	
 	}
 	| FLOAT name {
-		op = INPUT_PARAM;
+		op = IN_PARAM;
 		aux = gen_code_op(op);
 		aux->val1 = varLocation($2.identifier);
 		aux->val1->type = FLOATT;
@@ -109,7 +109,7 @@ parameter_spec
 	
 	}
 	| STRING name {
-		op = INPUT_PARAM;
+		op = IN_PARAM;
 		aux = gen_code_op(op);
 		aux->val1 = varLocation($2.identifier);
 		aux->val1->type = STRINGT;
@@ -150,32 +150,6 @@ programa : ordre separator programa {
 ordre : assign SEPARATOR {
 		$$ = NULL;
 	}
-	/* | boolean_expr {
-		if(errors_found == 0)
-		{
-			if($1.type == INTT)
-			{
-				op = PARAM;
-				aux = gen_code_op(op);
-				aux->val1 = $1.variable;
-				op = CALL;
-				aux = gen_code_op(op);
-				aux->oprel = PUTI;
-				aux->val1 = litLocationInt(1);
-			}
-			else if($1.type == FLOATT)
-			{
-				op = PARAM;
-				aux = gen_code_op(op);
-				aux->val1 = $1.variable;
-				op = CALL;
-				aux = gen_code_op(op);
-				aux->oprel = PUTF;
-				aux->val1 = litLocationInt(1);
-			}
-			$$ = NULL;
-		}
-	} */
 	| conditional
 	| loop
 	| function_call SEPARATOR {
@@ -195,7 +169,7 @@ function_call
 		aux = gen_code_op(op);
 		aux->val1 = varLocation($1.identifier);
 	}
-	| ID OPEN_PARENTH input_params CLOSE_PARENTH {
+	| ID OPEN_PARENTH IN_PARAMs CLOSE_PARENTH {
 		/*Load input params into stack */
 		fprintf(getDebugFile(), "\nLine %d: Function call with params.\n", yylineno);
 		op = CALL;
@@ -203,16 +177,16 @@ function_call
 		aux->val1 = varLocation($1.identifier);
 	}
 	
-input_params
-	: input_params ID {
+IN_PARAMs
+	: IN_PARAMs ID {
 		fprintf(getDebugFile(), ", %s", $2.identifier);
-		op = PARAM;
+		op = OUT_PARAM;
 		aux = gen_code_op(op);
 		aux->val1 = varLocation($2.identifier);
 	}
 	| ID {
 		fprintf(getDebugFile(), "Line %d: Params list: %s", yylineno, $1.identifier);
-		op = PARAM;
+		op = OUT_PARAM;
 		aux = gen_code_op(op);
 		aux->val1 = varLocation($1.identifier);
 		

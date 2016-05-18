@@ -325,6 +325,8 @@ int runFunction(frame *actualFrame)
 				pushvar(actualFrame->datastack, auxvar);
 				actualFrame->pc = (actualFrame->pc)+2;
 				break;
+
+			/* ARITHMETIC OPERATIONS */
 			case BYT_ADDI:
 				printd("--debugFunction-- Found addi\n");
 				addi(actualFrame->datastack);
@@ -335,6 +337,43 @@ int runFunction(frame *actualFrame)
 				subi(actualFrame->datastack);
 				actualFrame->pc = (actualFrame->pc)+1;
 				break;
+			case BYT_MULI:
+				printd("--debugFunction-- Found muli\n");
+				muli(actualFrame->datastack);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_DIVI:
+				printd("--debugFunction-- Found divi\n");
+				divi(actualFrame->datastack);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_ADDF:
+				printd("--debugFunction-- Found addf\n");
+				addf(actualFrame->datastack);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_SUBF:
+				printd("--debugFunction-- Found subf\n");
+				subf(actualFrame->datastack);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_MULF:
+				printd("--debugFunction-- Found mulf\n");
+				mulf(actualFrame->datastack);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_DIVF:
+				printd("--debugFunction-- Found divf\n");
+				divf(actualFrame->datastack);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+			case BYT_ADDS:
+				printd("--debugFunction-- Found adds\n");
+				adds(actualFrame->datastack);
+				actualFrame->pc = (actualFrame->pc)+1;
+				break;
+
+			/* COMPARATORS */
 			case BYT_LTI:
 				printd("--debugFunction-- Found lti\n");
 				

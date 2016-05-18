@@ -52,7 +52,7 @@ int StackPushI(stack * st, stacke * elem)
 		
 		if(elem->type != 0)
 		{
-			printf("UNIMPLEMENTED (Push of incorrect type).\n");
+			printf("UNIMPLEMENTED (Push of incorrect type, not an int).\n");
 			exit(6);
 		}
 		st->contents = (stacke *)malloc(sizeof(stacke));
@@ -88,7 +88,7 @@ int StackPushF(stack * st, stacke * elem)
 		
 		if(elem->type != 1)
 		{
-			printf("UNIMPLEMENTED (Push of incorrect type).\n");
+			printf("UNIMPLEMENTED (Push of incorrect type, not a float).\n");
 			exit(6);
 		}
 		st->contents = (stacke *)malloc(sizeof(stacke));
@@ -120,7 +120,7 @@ int StackPushS(stack * st, stacke * elem)
 		
 		if(elem->type != 2)
 		{
-			printf("UNIMPLEMENTED (Push of incorrect type).\n");
+			printf("UNIMPLEMENTED (Push of incorrect type, not a string).\n");
 			exit(6);
 		}
 		
@@ -210,7 +210,7 @@ int StackPopF(stack * st, stacke * data)
 		}
 		else if(element->type != 1)
 		{
-			printf("--StackPopI-- Unknown type received.\n");
+			printf("--StackPopF-- Unknown type received.\n");
 			exit(4);
 		}
 		st->contents = element->last;
@@ -263,7 +263,7 @@ int StackPopS(stack * st, stacke * data)
 		}	
 		else if(element->type != 2)
 		{
-			printf("--StackPopI-- Unknown type received.\n");
+			printf("--StackPopS-- Unknown type received.\n");
 			exit(4);
 		}
 		st->contents = element->last;

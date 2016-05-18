@@ -15,7 +15,7 @@
 #define BYT_I2F 0x50
 #define BYT_I2S 0x51
 #define BYT_F2I 0x52
-#define BYT_F2S 0x52
+#define BYT_F2S 0x53
 
 #define BYT_ADDI 0x60
 #define BYT_SUBI 0x61
@@ -42,11 +42,12 @@
 #define ASSIGNMENTUN_OFFSET 5
 #define ASSIGNMENTOP_OFFSET 7
 #define ASSIGNMENT_OFFSET 4
-#define RETURN_OFFSET 2
+#define RETURN_OFFSET 3
 #define GOTO_OFFSET 2
 #define IF_OP_OFFSET 7
 #define CALL_OFFSET 2
 #define HALT_OFFSET 1
-#define INPUT_PARAM_OFFSET 2
+#define IN_PARAM_OFFSET 2
+#define OUT_PARAM_OFFSET 2
 
 #endif

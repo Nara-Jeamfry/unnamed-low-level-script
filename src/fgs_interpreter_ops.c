@@ -132,45 +132,67 @@ void operate(stack * st, int type)
 		memError("arithmetic operation");
 	}
 	
-	StackPopI(st, aux1);
-	StackPopI(st, aux2);
 	
 	switch(type)
 	{
 		case 0:
+			StackPopI(st, aux1);
+			StackPopI(st, aux2);
 			aux2->value.literalI += aux1->value.literalI;
+			StackPushI(st, aux2);
 			break;
 		case 1:
+			StackPopI(st, aux1);
+			StackPopI(st, aux2);
 			aux2->value.literalI -= aux1->value.literalI;
+			StackPushI(st, aux2);
 			break;
 		case 2:
+			StackPopI(st, aux1);
+			StackPopI(st, aux2);
 			aux2->value.literalI *= aux1->value.literalI;
+			StackPushI(st, aux2);
 			break;
 		case 3:
+			StackPopI(st, aux1);
+			StackPopI(st, aux2);
 			aux2->value.literalI /= aux1->value.literalI;
+			StackPushI(st, aux2);
 			break;
 		case 4:
+			StackPopF(st, aux1);
+			StackPopF(st, aux2);
 			aux2->value.literalF += aux1->value.literalF;
+			StackPushF(st, aux2);
 			break;
 		case 5:
+			StackPopF(st, aux1);
+			StackPopF(st, aux2);
 			aux2->value.literalF -= aux1->value.literalF;
+			StackPushF(st, aux2);
 			break;
 		case 6:
+			StackPopF(st, aux1);
+			StackPopF(st, aux2);
 			aux2->value.literalF *= aux1->value.literalF;
+			StackPushF(st, aux2);
 			break;
 		case 7:
+			StackPopF(st, aux1);
+			StackPopF(st, aux2);
 			aux2->value.literalF /= aux1->value.literalF;
+			StackPushF(st, aux2);
 			break;
 		case 8:
+			StackPopS(st, aux1);
+			StackPopS(st, aux2);
 			resultString = (char *)malloc(strlen(aux2->value.literalS)+strlen(aux1->value.literalS)+1);
 			strcpy(resultString, aux2->value.literalS);
 			strcat(resultString, aux1->value.literalS);
-			free(aux2->value.literalS);
 			aux2->value.literalS = resultString;
+			StackPushS(st, aux2);
 			break;
 	}
-	
-	StackPushI(st, aux2);
 
 	free(aux1);
 	free(aux2);

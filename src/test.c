@@ -149,14 +149,15 @@ int main(int argc, char **argv)
 	/* Test */
 	fgs_load_script(FGS, "test/prova_condicional_if.fgs");
 	testFunction(FGS, "prova_condicional_if");
-			
-	/* Test */
-	fgs_load_script(FGS, "test/prova_aritmetica_mul.fgs");
-	testFunction(FGS, "prova_aritmetica_mul");
-			
+	
 	/* Test */
 	fgs_load_script(FGS, "test/prova_aritmetica_sum.fgs");
 	testFunction(FGS, "prova_aritmetica_sum");
+			
+	
+	/* Test */
+	fgs_load_script(FGS, "test/prova_aritmetica_sum_parenth.fgs");
+	testFunction(FGS, "prova_aritmetica_sum_parenth");
 			
 	/* Test */
 	fgs_load_script(FGS, "test/prova_aritmetica_strings.fgs");
@@ -191,12 +192,16 @@ int main(int argc, char **argv)
 	push_valueI(FGS, 10);
 	push_valueI(FGS, 10);
 	testFunctionI(FGS, "resta", 0);
-
+			
+	/* Test */
+	fgs_load_script(FGS, "test/prova_aritmetica_mul.fgs");
+	testFunction(FGS, "prova_aritmetica_mul");
+			
 	/* test: */
-	fgs_load_script(FGS, "test/prova_aritmetica_areatriangle.fgs");
+	/*fgs_load_script(FGS, "test/prova_aritmetica_areatriangle.fgs");
 	push_valueI(FGS, 10);
 	push_valueI(FGS, 10);
-	testFunctionI(FGS, "prova_aritmetica_areatriangle", 50);
+	testFunctionI(FGS, "prova_aritmetica_areatriangle", 50);*/
 
 	fgs_load_script(FGS, "test/prova_lexic_c.fgs");
 	push_valueI(FGS, 1);

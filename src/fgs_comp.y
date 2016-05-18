@@ -704,12 +704,12 @@ multiplication_expr
 	}
 	| multiplication_expr DIV generic_expression {
 		int opresult = canIOperateThem($1, $3, DIVIS);
-		fprintf(getDebugFile(), "Line %d: Performed MUL operation between %s and %s.\n", yylineno, typeToString($1.type), typeToString($3.type));
+		fprintf(getDebugFile(), "Line %d: Performed DIV operation between %s and %s.\n", yylineno, typeToString($1.type), typeToString($3.type));
 		if(opresult == -1)
 		{
-			printError2("Semantic Error: Operation * not allowed on types %s and %s.", typeToString($1.type), typeToString($3.type));
+			printError2("Semantic Error: Operation / not allowed on types %s and %s.", typeToString($1.type), typeToString($3.type));
 		}
-		$$ = operateValues($1, $3, MULT);
+		$$ = operateValues($1, $3, DIVIS);
 		if((opresult == INTT || opresult == FLOATT))
 		{
 			if(opresult != INTT)
@@ -747,12 +747,10 @@ multiplication_expr
 			}
 			
 			aux->val1 = tempLocation();
-			aux->val2 = $1.variable;
-			aux->val3 = $3.variable;
+			aux->val2 = duplicate_entry($1.variable);
+			aux->val3 = duplicate_entry($3.variable);
 			$$.variable = aux->val1;
 		}
-		fprintf(getDebugFile(), "Line %d: Performed DIV operation between %s and %s.\n", yylineno, typeToString($1.type), typeToString($3.type));
-		$$ = operateValues($1, $3, DIVIS);
 	}
 
 error_expression

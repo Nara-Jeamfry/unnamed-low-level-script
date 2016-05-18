@@ -80,6 +80,8 @@ void clean_state(fgs_state *fgs)
 	}
 	fgs->loaded_files = NULL;
 
+
+
 	StackDestroy(fgs->mainstack);
 }
 
@@ -277,7 +279,7 @@ int runFunction(frame *actualFrame)
 	
 	var auxvar;
 	
-	while(op[(int)actualFrame->pc] != 0)
+	while(op[(int)actualFrame->pc] != 0 && op[(int)actualFrame->pc] != 1)
 	{
 		if(debug)
 			fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
@@ -385,7 +387,16 @@ int runFunction(frame *actualFrame)
 	}
 	if(debug)
 		fprintf(stdout, "--debugFunction-- Now at op %X.\n", actualFrame->pc);
-	printd("--debugFunction-- Found HALT!\n");
+
+	if(op[(int)actualFrame->pc] == 1)
+	{
+		printd("--debugFunction-- Found HALR!\n");
+		auxvar = findVariable(actualFrame, op[(actualFrame->pc)+1]);
+		pushvar(actualFrame->datastack, auxvar);
+	}
+	else {
+		printd("--debugFunction-- Found HALT!\n");
+	}
 	print("--runFunction-- No problems found during execution.\n");
 
 	return 1;
